@@ -1,0 +1,3229 @@
+import { useState } from 'react';
+import {
+  Save, X, Plus, Trash2, Image as ImageIcon, Video, Music, Link2, Phone,
+  MessageCircle, Calendar, Clock, MapPin, Users, BarChart3, Edit3, Eye,
+  MousePointerClick, UserCheck, CheckCircle2, TrendingUp, Filter, Copy,
+  Archive, AlertTriangle, ChevronRight, Search, Bell, Settings, FileText,
+  Smile, Send, ChevronDown, Check, Globe, Target, Zap, PlayCircle,
+  PauseCircle, Volume2, VolumeX, MoreHorizontal, ArrowUpRight, ArrowDownRight,
+  Sparkles, Layers, Smartphone, Download, ExternalLink, Hash,
+  Upload, FileSpreadsheet, Star, ShieldCheck, UserX, UserPlus,
+  Bold, Italic, Underline, List, Strikethrough, AlertCircle,
+  Wallet, Coins, Briefcase, GripVertical, Code, ImagePlus,
+  CircleDollarSign, Percent, Calculator, Building2, Boxes,
+  History
+} from 'lucide-react';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  LineChart, Line, PieChart, Pie, Cell, Area, AreaChart, FunnelChart, Funnel,
+  LabelList, Legend, ReferenceLine
+} from 'recharts';
+
+// ============ Sample data ============
+const cityData = [
+  { name: 'Москва', views: 98450, clicks: 14820, bookings: 2412, region: 14820, regionName: 'Московская обл.' },
+  { name: 'Санкт-Петербург', views: 64230, clicks: 9140, bookings: 1598, region: 7320, regionName: 'Ленинградская обл.' },
+  { name: 'Краснодар', views: 38810, clicks: 5690, bookings: 1145, region: 9240, regionName: 'Краснодарский край' },
+  { name: 'Екатеринбург', views: 30920, clicks: 4510, bookings: 798, region: 3410, regionName: 'Свердловская обл.' },
+  { name: 'Новосибирск', views: 25210, clicks: 3420, bookings: 576, region: 2280, regionName: 'Новосибирская обл.' },
+  { name: 'Казань', views: 22890, clicks: 3180, bookings: 564, region: 1490, regionName: 'Татарстан' }
+];
+
+const timeSeriesData = [
+  { day: 'Пн', views: 32400, clicks: 4580 },
+  { day: 'Вт', views: 39100, clicks: 5520 },
+  { day: 'Ср', views: 46300, clicks: 6910 },
+  { day: 'Чт', views: 54800, clicks: 8180 },
+  { day: 'Пт', views: 65200, clicks: 9620 },
+  { day: 'Сб', views: 41400, clicks: 5760 },
+  { day: 'Вс', views: 35800, clicks: 4680 }
+];
+
+const skipRateData = [
+  { sec: '0-1с', remaining: 100 },
+  { sec: '1-2с', remaining: 92 },
+  { sec: '2-3с', remaining: 78 },
+  { sec: '3-4с', remaining: 64 },
+  { sec: '4-5с', remaining: 51 },
+  { sec: '5-6с', remaining: 43 },
+  { sec: '6-7с', remaining: 38 },
+  { sec: '7с+', remaining: 34 }
+];
+
+const pollResults = [
+  { option: 'Через друзей и знакомых', votes: 487, pct: 42 },
+  { option: 'Реклама ВКонтакте', votes: 286, pct: 25 },
+  { option: 'Поиск в интернете', votes: 198, pct: 17 },
+  { option: 'Telegram-каналы', votes: 116, pct: 10 },
+  { option: 'Другое', votes: 70, pct: 6 }
+];
+
+const storyList = [
+  { id: 1, title: 'Срочные смены в Москве — х1.5', status: 'active', views: 64200, ctr: '14.2%', city: 'Москва', cover: 'bg-gradient-to-br from-orange-400 to-rose-500' },
+  { id: 2, title: 'Откуда вы о нас узнали? (опрос)', status: 'active', views: 98180, ctr: '—', city: 'Все', cover: 'bg-gradient-to-br from-violet-500 to-indigo-600' },
+  { id: 3, title: 'Новые объекты в Краснодаре', status: 'scheduled', views: 0, ctr: '—', city: 'Краснодар', cover: 'bg-gradient-to-br from-emerald-400 to-teal-600' },
+  { id: 4, title: 'Реферальная программа +2000₽', status: 'active', views: 52410, ctr: '18.7%', city: 'Все', cover: 'bg-gradient-to-br from-amber-400 to-orange-500' },
+  { id: 5, title: 'Инструкция по выходу на смену', status: 'archived', views: 168340, ctr: '8.1%', city: 'Все', cover: 'bg-gradient-to-br from-sky-400 to-blue-600' },
+  { id: 6, title: 'Промо-кампания для новичков', status: 'draft', views: 0, ctr: '—', city: '—', cover: 'bg-gradient-to-br from-slate-300 to-slate-500' }
+];
+
+const COLORS = ['#1976D2', '#42A5F5', '#7E57C2', '#26A69A', '#EF5350', '#FFA726'];
+
+// ============ Toast (replaces alert) ============
+function Toast({ message, onClose }) {
+  if (!message) return null;
+  return (
+    <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
+      <CheckCircle2 size={18} className="text-emerald-400" />
+      <span className="text-sm font-medium">{message}</span>
+      <button onClick={onClose} className="ml-2 text-slate-400 hover:text-white"><X size={16} /></button>
+    </div>
+  );
+}
+
+// ============ Phone Preview ============
+function PhonePreview({ title, description, links, hasContact, contacts, hasPoll, polls, contentFile, coverColor, reactionsEnabled = true, customReactions = ['❤️','🔥','👍'], hasCopay, copay, isUrgent, pollUserAnswered, setPollUserAnswered }) {
+  const [previewMode, setPreviewMode] = useState('home'); // 'home' | 'story'
+  const firstPoll = polls && polls[0];
+  const userAnswer = firstPoll?.options?.[2] || 'Поиск в интернете';
+
+  return (
+    <div className="sticky top-6">
+      <div className="text-xs uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-2">
+        <Smartphone size={14} /> Предпросмотр у исполнителя
+      </div>
+
+      {/* Mode toggle */}
+      <div className="flex gap-1 bg-slate-100 p-1 rounded-lg mx-auto mb-3" style={{ width: 280 }}>
+        <button
+          onClick={() => setPreviewMode('home')}
+          className={`flex-1 py-1.5 rounded-md text-[11px] font-semibold transition ${
+            previewMode === 'home' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          🏠 Главный экран
+        </button>
+        <button
+          onClick={() => setPreviewMode('story')}
+          className={`flex-1 py-1.5 rounded-md text-[11px] font-semibold transition ${
+            previewMode === 'story' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          📖 Сторис открыта
+        </button>
+      </div>
+
+      <div className="mx-auto" style={{ width: 280 }}>
+        <div className="bg-slate-900 rounded-[2.5rem] p-3 shadow-2xl">
+          <div className="bg-white rounded-[2rem] overflow-hidden relative" style={{ aspectRatio: '9/19' }}>
+            {previewMode === 'home' ? (
+              <HomeScreenView coverColor={coverColor} isUrgent={isUrgent} title={title} />
+            ) : (
+              <StoryFullscreenView
+                title={title} description={description} links={links}
+                hasContact={hasContact} contacts={contacts}
+                hasPoll={hasPoll} polls={polls} firstPoll={firstPoll}
+                contentFile={contentFile} coverColor={coverColor}
+                reactionsEnabled={reactionsEnabled} customReactions={customReactions}
+                hasCopay={hasCopay} copay={copay}
+                isUrgent={isUrgent} userAnswer={userAnswer}
+                pollUserAnswered={pollUserAnswered} setPollUserAnswered={setPollUserAnswered}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Simulation controls below preview */}
+      <div className="mt-3 space-y-1.5">
+        {previewMode === 'story' && hasPoll && (
+          <button
+            onClick={() => setPollUserAnswered && setPollUserAnswered(!pollUserAnswered)}
+            className={`w-full py-1.5 rounded-lg text-xs font-semibold border transition flex items-center justify-center gap-1.5 ${
+              pollUserAnswered
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+            }`}
+          >
+            {pollUserAnswered ? <CheckCircle2 size={12} /> : <Eye size={12} />}
+            {pollUserAnswered ? 'Симуляция: опрос пройден ✓' : 'Симулировать: ответить на опрос'}
+          </button>
+        )}
+        <div className="text-center text-[10px] text-slate-400">
+          {previewMode === 'home' ? 'Так выглядит главный экран приложения РР' : 'Так увидит открытую сторис исполнитель'}
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes urgentPulse {
+          0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
+          70% { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+          100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// ============ Home Screen view (matches real app) ============
+function HomeScreenView({ coverColor, isUrgent, title }) {
+  return (
+    <div className="absolute inset-0 bg-gradient-to-b from-slate-50 to-white overflow-hidden flex flex-col">
+      {/* Status bar */}
+      <div className="flex justify-between items-center px-4 pt-2 pb-1 text-slate-700 text-[9px] font-semibold flex-shrink-0">
+        <span>11:40</span>
+        <div className="absolute left-1/2 -translate-x-1/2 top-1.5 w-16 h-4 bg-black rounded-full" />
+        <div className="flex items-center gap-1">
+          <span className="opacity-60">📶</span>
+          <span className="opacity-60">📡</span>
+          <span className="bg-slate-200 px-1 rounded text-[8px]">44</span>
+        </div>
+      </div>
+
+      {/* Top auth bar */}
+      <div className="px-3 py-2 flex items-center justify-between bg-white border-b border-slate-100 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center">
+            <span className="text-slate-400">👤</span>
+          </div>
+          <span className="text-[11px] font-semibold text-slate-800">Авторизоваться</span>
+          <ChevronRight size={11} className="text-slate-400" />
+        </div>
+        <div className="w-7 h-7 rounded-md bg-slate-800 flex items-center justify-center text-white text-[9px] font-bold tracking-tighter">РР</div>
+      </div>
+
+      {/* Stories section */}
+      <div className="px-3 pt-2 pb-1 flex-shrink-0">
+        <div className="text-sm font-bold text-slate-900 mb-1.5">Истории</div>
+        <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+          {/* Current urgent story */}
+          <div className="flex flex-col items-center flex-shrink-0">
+            <div className={`relative rounded-full p-[2px] ${isUrgent ? 'bg-gradient-to-br from-red-500 to-orange-500' : 'bg-blue-500'}`}
+              style={isUrgent ? { animation: 'urgentPulse 1.5s infinite' } : {}}>
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white">
+                <div className={`w-full h-full ${coverColor} flex items-center justify-center text-white text-[8px] font-bold text-center px-1 leading-tight`}>
+                  {(title || 'СТОРИС').slice(0, 14)}
+                </div>
+              </div>
+              {isUrgent && (
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white flex items-center justify-center">
+                  <Zap size={8} className="text-white" />
+                </div>
+              )}
+            </div>
+            <div className="text-[8px] text-slate-700 mt-0.5 w-12 text-center truncate font-semibold">{isUrgent ? '🔥 Срочно' : 'Сейчас'}</div>
+          </div>
+          {/* Макс */}
+          <div className="flex flex-col items-center flex-shrink-0">
+            <div className="rounded-full p-[2px] bg-blue-500">
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white bg-blue-600 flex items-center justify-center">
+                <span className="text-white text-[10px] font-bold">max</span>
+              </div>
+            </div>
+            <div className="text-[8px] text-slate-600 mt-0.5 w-12 text-center truncate">Макс</div>
+          </div>
+          {/* Viewed */}
+          <div className="flex flex-col items-center flex-shrink-0 opacity-50">
+            <div className="rounded-full p-[2px] bg-slate-400">
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white">
+                <div className="w-full h-full bg-gradient-to-br from-slate-500 to-slate-600 grayscale" />
+              </div>
+            </div>
+            <div className="text-[8px] text-slate-500 mt-0.5 w-12 text-center truncate">Рабочие руки</div>
+          </div>
+          {/* Promo */}
+          <div className="flex flex-col items-center flex-shrink-0">
+            <div className="rounded-full p-[2px] bg-blue-500">
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                <span className="text-white text-[7px] font-bold text-center leading-tight">2000₽<br/>ЗА ДРУГА</span>
+              </div>
+            </div>
+            <div className="text-[8px] text-slate-600 mt-0.5 w-12 text-center truncate">Реферал</div>
+          </div>
+          {/* More viewed */}
+          <div className="flex flex-col items-center flex-shrink-0 opacity-50">
+            <div className="rounded-full p-[2px] bg-slate-400">
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white bg-gradient-to-br from-emerald-500 to-teal-600 grayscale" />
+            </div>
+            <div className="text-[8px] text-slate-500 mt-0.5 w-12 text-center truncate">Важно</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Работа section */}
+      <div className="px-3 pt-2 flex-1 overflow-hidden">
+        <div className="text-sm font-bold text-slate-900 mb-1.5">Работа</div>
+        <div className="space-y-1.5">
+          {[
+            { icon: '🛒', t: 'Подработка' },
+            { icon: '🕐', t: 'Вахта' },
+            { icon: '🔨', t: 'Вакансии' },
+            { icon: '🎁', t: 'Акции и бонусы' }
+          ].map(c => (
+            <div key={c.t} className="bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-2 flex items-center gap-2">
+              <span className="text-base flex-shrink-0">{c.icon}</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-[11px] font-bold text-slate-800 leading-tight">{c.t}</div>
+                <div className="text-[8px] text-slate-500 truncate">Авторизуйтесь для просмотра</div>
+              </div>
+              <ChevronRight size={11} className="text-slate-400 flex-shrink-0" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom auth buttons */}
+      <div className="px-3 pb-3 pt-2 space-y-1.5 flex-shrink-0">
+        <button className="w-full bg-slate-800 text-white py-2 rounded-xl text-[11px] font-bold">Войти</button>
+        <button className="w-full bg-emerald-500 text-white py-2 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1">
+          ✓ Войти по Сбер ID
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============ Story Fullscreen view ============
+function StoryFullscreenView({ title, description, links, hasContact, contacts, hasPoll, polls, firstPoll, contentFile, coverColor, reactionsEnabled, customReactions, hasCopay, copay, isUrgent, userAnswer, pollUserAnswered, setPollUserAnswered }) {
+  return (
+    <div className="absolute inset-0 bg-black overflow-hidden">
+      {/* Status bar */}
+      <div className="absolute top-0 left-0 right-0 z-20 flex justify-between items-center px-6 pt-2 text-white text-[10px] font-semibold">
+        <span>11:40</span>
+        <div className="absolute left-1/2 -translate-x-1/2 top-1.5 w-20 h-5 bg-black rounded-full" />
+        <span>●●●●●</span>
+      </div>
+
+      {/* Progress bars */}
+      <div className="absolute top-7 left-3 right-3 flex gap-1 z-20">
+        <div className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden"><div className="h-full w-2/3 bg-white" /></div>
+        <div className="flex-1 h-0.5 bg-white/30 rounded-full" />
+        <div className="flex-1 h-0.5 bg-white/30 rounded-full" />
+      </div>
+
+      {/* Top header */}
+      <div className="absolute top-10 left-3 right-3 flex justify-between items-center z-20">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-[10px] font-bold">РР</div>
+          <span className="text-white text-xs font-medium">Рабочие руки</span>
+          {isUrgent && <span className="text-[9px] font-bold bg-red-500 text-white px-1.5 py-0.5 rounded-full uppercase tracking-wider">Срочно</span>}
+        </div>
+        <X size={16} className="text-white" />
+      </div>
+
+      {/* Content background */}
+      <div className={`absolute inset-0 ${coverColor || 'bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700'}`}>
+        {isUrgent && (
+          <div className="absolute inset-0 pointer-events-none" style={{
+            background: 'radial-gradient(ellipse at 50% 0%, rgba(239,68,68,0.3) 0%, transparent 60%)'
+          }} />
+        )}
+        {contentFile?.type === 'video' && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <PlayCircle size={56} className="text-white/80" />
+          </div>
+        )}
+      </div>
+
+      {/* Story body */}
+      <div className="absolute inset-0 flex flex-col justify-end p-4 z-10">
+        {hasPoll && firstPoll && firstPoll.question && (
+          <div className="mb-3 bg-white/95 backdrop-blur rounded-2xl p-3 shadow-lg">
+            {pollUserAnswered ? (
+              <div>
+                <div className="text-[10px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                  <CheckCircle2 size={11} className="text-emerald-600" /> Вы уже ответили
+                </div>
+                <div className="text-xs font-semibold text-slate-800 mb-2">{firstPoll.question}</div>
+                <div className="space-y-1">
+                  {firstPoll.options.filter(o => o.trim()).slice(0, 5).map((opt, i) => (
+                    <div key={i} className={`rounded-lg px-3 py-1.5 text-[11px] flex items-center justify-between ${
+                      opt === userAnswer ? 'bg-blue-100 text-blue-800 font-semibold border border-blue-200' : 'bg-slate-50 text-slate-500'
+                    }`}>
+                      <span className="flex items-center gap-1.5">
+                        {opt === userAnswer && <CheckCircle2 size={11} className="text-blue-600" />}
+                        {opt}
+                      </span>
+                      {opt === userAnswer && <span className="text-[9px] text-blue-600 font-bold">Ваш ответ</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="text-xs font-semibold text-slate-800 mb-2 flex items-center justify-between">
+                  <span>{firstPoll.question}</span>
+                  {polls.length > 1 && <span className="text-[10px] text-slate-400 ml-2">1/{polls.length}</span>}
+                </div>
+                <div className="space-y-1.5">
+                  {firstPoll.options.filter(o => o.trim()).slice(0, 5).map((opt, i) => (
+                    <div
+                      key={i}
+                      onClick={setPollUserAnswered ? () => setPollUserAnswered(true) : undefined}
+                      className="bg-blue-50 hover:bg-blue-100 rounded-lg px-3 py-1.5 text-[11px] text-slate-700 cursor-pointer flex items-center gap-2"
+                    >
+                      {firstPoll.type === 'multi' && <span className="w-3 h-3 border border-slate-300 rounded-sm" />}
+                      {opt}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {title && (
+          <div className="text-white font-bold text-lg leading-tight mb-1 drop-shadow-lg">{title}</div>
+        )}
+        {description && (
+          <div className="text-white/90 text-xs leading-snug mb-2 drop-shadow-md line-clamp-3">{description}</div>
+        )}
+
+        {hasCopay && (
+          <div className="mb-2 bg-black/30 backdrop-blur rounded-lg px-2.5 py-1.5">
+            <div className="text-[10px] text-white/70 leading-tight">{copay.text}</div>
+            <div className="text-white text-[12px] font-semibold leading-tight">
+              {copay.clientRate} ₽ <span className="text-emerald-300 font-bold">+ {copay.bonus} ₽ от РР</span>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-1.5 mb-2">
+          {links.filter(l => l.text).map((l, i) => (
+            <div key={i} className="bg-white/95 backdrop-blur rounded-full px-3 py-2 text-[11px] font-semibold text-blue-700 flex items-center justify-between shadow">
+              <span className="flex items-center gap-1.5"><Link2 size={11} />{l.text}</span>
+              <ChevronRight size={12} />
+            </div>
+          ))}
+        </div>
+
+        {hasContact && contacts.filter(c => c.value).length > 0 && (
+          <div className="bg-emerald-500 rounded-full px-3 py-2 text-[11px] font-semibold text-white flex items-center justify-center gap-1.5 shadow-lg">
+            <Phone size={11} /> Связаться ({contacts.filter(c => c.value).length})
+          </div>
+        )}
+
+        {reactionsEnabled && customReactions.length > 0 && (
+          <div className="flex items-center justify-between mt-3 px-1">
+            <div className="flex-1 bg-white/15 backdrop-blur rounded-full px-3 py-1.5 text-[11px] text-white/70">
+              Ответить...
+            </div>
+            <div className="flex gap-1.5 ml-2">
+              {customReactions.map(e => <span key={e} className="text-base">{e}</span>)}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============ Editor Tab ============
+function EditorView({ showToast }) {
+  const [title, setTitle] = useState('Срочные смены в Москве — оплата х1.5');
+  const [description, setDescription] = useState('Нужны исполнители на склад в Хамовниках. Сегодня и завтра — повышенная ставка. Записывайся, мест осталось мало.');
+  const [contentFile, setContentFile] = useState({ name: 'urgent_shifts_msk.mp4', size: '4.2 МБ', type: 'video', duration: 45 });
+  const [contentError, setContentError] = useState('');
+  const [links, setLinks] = useState([
+    { text: 'Записаться на смену', url: 'app://shifts/urgent-msk', type: 'internal' },
+    { text: 'Подробности в Telegram', url: 'https://t.me/rabochie_ruki', type: 'external' }
+  ]);
+  const [hasContact, setHasContact] = useState(true);
+  const [contacts, setContacts] = useState([
+    { type: 'call', label: 'Позвонить менеджеру', value: '+7 (495) 123-45-67' },
+    { type: 'telegram', label: 'Написать в Telegram', value: '@rabochie_ruki' },
+    { type: 'max', label: 'Написать в Макс', value: 'max.ru/rabochie_ruki' }
+  ]);
+  const [hasPoll, setHasPoll] = useState(false);
+  const [polls, setPolls] = useState([
+    { question: 'Откуда вы о нас узнали?', type: 'single', options: ['Через друзей', 'Реклама ВК', 'Поиск в интернете', 'Telegram-каналы', 'Другое'] }
+  ]);
+  const [pollProtection, setPollProtection] = useState({ delay: true, confirm: true, oneVote: true, randomize: true });
+  const [pollAudienceFilter, setPollAudienceFilter] = useState('all');
+  const [pollUserAnswered, setPollUserAnswered] = useState(false); // Simulation state
+  const [hasCopay, setHasCopay] = useState(true);
+  const [copay, setCopay] = useState({ clientRate: 2500, bonus: 500, text: 'Доплата сразу на карту' });
+  const [reactionsEnabled, setReactionsEnabled] = useState(true);
+  const [customReactions, setCustomReactions] = useState(['❤️', '🔥', '👍']);
+  const [isUrgent, setIsUrgent] = useState(true);
+  const [targetCities, setTargetCities] = useState(['Москва']);
+  const [groupParentCity, setGroupParentCity] = useState(true);
+  const [targetCategory, setTargetCategory] = useState('Все категории');
+  const [targetPartners, setTargetPartners] = useState(['p1']);
+  const [targetSubPartner, setTargetSubPartner] = useState('Все объекты');
+  const [quickSegment, setQuickSegment] = useState(null);
+  const [targetMode, setTargetMode] = useState('filters');
+  const [uploadedFile, setUploadedFile] = useState(null);
+  // ERP filters — mirror the actual ERP filter structure
+  const [erpFilters, setErpFilters] = useState({
+    // Основные сведения
+    registrationDateFrom: '',
+    citizenship: 'any', // any/RU/BY/KZ/UZ/KG/AM/TJ
+    gender: 'any', // any/M/F
+    ageFrom: 18,
+    ageTo: 65,
+    metroStation: '',
+    samozanyatStatus: 'active', // active/suspended/all
+    profession: 'any',
+    documentType: 'any', // passport_rf/foreign/patent
+    // Задания
+    completedFrom: 0,
+    completedTo: 3000,
+    completedPeriod: 'all',
+    // Клиент
+    clientObjectId: '',
+    blacklistedClient: '',
+    // Дополнительные
+    online: false,
+    emptyProfiles: false,
+    unpaidFineLastMonth: false,
+    notBanned: true,
+    vahta: false,
+    // Тэги
+    hasTags: [],
+    excludeTags: [],
+    // Активность
+    lastVisitDaysFrom: 0,
+    lastVisitDaysTo: 30,
+    paymentBan: 'any', // any/yes/no
+    // Рекрутер
+    source: 'any',
+    recruiter: 'any',
+    firstPaymentDate: '',
+    firstAssignmentDate: '',
+    lastCallDate: '',
+    mobileApp: 'any', // any/has_app/no_app
+    paymentDataVerified: 'any',
+    // Партнёрские
+    operator: 'any',
+    // (Партнёр уже выше как targetPartners)
+    minRating: 0, // 10-point
+  });
+  const [autoDeactivate, setAutoDeactivate] = useState(true);
+  const [autoDeactivateDate, setAutoDeactivateDate] = useState('2026-05-09T22:00');
+  const [autoDeactivateOnBrokenLink, setAutoDeactivateOnBrokenLink] = useState(true);
+  const [abTest, setAbTest] = useState(false);
+  const [abVariant, setAbVariant] = useState('A');
+  const [coverColor, setCoverColor] = useState('bg-gradient-to-br from-orange-400 via-red-500 to-rose-600');
+  const [coverColorB, setCoverColorB] = useState('bg-gradient-to-br from-violet-500 via-purple-600 to-indigo-700');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [emojiTarget, setEmojiTarget] = useState(null); // 'title' | 'description'
+
+  const allCities = ['Москва', 'Санкт-Петербург', 'Краснодар', 'Екатеринбург', 'Новосибирск', 'Казань'];
+  const cityChildren = {
+    'Москва': 'Московская обл.',
+    'Санкт-Петербург': 'Ленинградская обл.',
+    'Краснодар': 'Краснодарский край',
+    'Екатеринбург': 'Свердловская обл.',
+    'Новосибирск': 'Новосибирская обл.',
+    'Казань': 'Татарстан'
+  };
+  const categories = ['Все категории', 'Склад', 'Курьеры', 'Производство', 'Уборка', 'Стройка'];
+  // Partners as OOO and IP entities (full names from ERP)
+  const partners = [
+    { id: 'p1', name: 'ООО «ВкусВилл»', short: 'ВкусВилл' },
+    { id: 'p2', name: 'ООО «Икс 5 Технологии»', short: 'X5 Group' },
+    { id: 'p3', name: 'ООО «Самокат»', short: 'Самокат' },
+    { id: 'p4', name: 'ООО «Яндекс.Лавка»', short: 'Яндекс.Лавка' },
+    { id: 'p5', name: 'АО «Тандер»', short: 'Магнит' },
+    { id: 'p6', name: 'ООО «Интернет Решения»', short: 'Ozon' },
+    { id: 'p7', name: 'ИП Хайруллин М.Р.', short: 'ИП Хайруллин' },
+    { id: 'p8', name: 'ИП Соколов А.Е. (логистика)', short: 'ИП Соколов' },
+  ];
+  const operators = ['Все операторы', 'Анна Петрова', 'Михаил Иванов', 'Елена Смирнова', 'Дмитрий Козлов'];
+  const recruiters = ['Любой', 'Анна П.', 'Сергей В.', 'Мария К.', 'Алексей Д.'];
+  const sources = ['Любой', 'ВКонтакте', 'Avito', 'HH.ru', 'Реферал', 'Telegram-канал', 'Поиск Google/Яндекс'];
+  const professionList = ['Любая', 'Курьер', 'Складской работник', 'Уборщик', 'Грузчик', 'Кассир', 'Сборщик заказов', 'Комплектовщик'];
+  const subPartners = ['Все объекты', 'Москва-Север', 'Москва-Юг', 'Дарк-стор Хамовники', 'РЦ Подольск'];
+  const quickSegments = [
+    { v: 'one_task', l: 'Выполнили 1 задание', icon: '🆕' },
+    { v: 'less_5', l: 'Меньше 5 смен', icon: '🌱' },
+    { v: 'ten_tasks', l: 'Выполнили 10 заданий', icon: '✅' },
+    { v: 'experienced', l: '50+ смен', icon: '⭐' },
+    { v: 'sleeping', l: '«Спящие» (нет смен 30 дн.)', icon: '😴' }
+  ];
+  const allReactions = ['❤️', '🔥', '👍', '👎', '🤔', '💯', '⚡', '🎯', '✨', '💪', '🙌', '😎'];
+  const messengerTypes = [
+    { v: 'call', l: 'Звонок', icon: '📞', placeholder: '+7 (495) 123-45-67', defaultLabel: 'Позвонить менеджеру' },
+    { v: 'whatsapp', l: 'WhatsApp', icon: '🟢', placeholder: '+7 916 123-45-67', defaultLabel: 'Написать в WhatsApp' },
+    { v: 'telegram', l: 'Telegram', icon: '✈️', placeholder: '@username или ссылка', defaultLabel: 'Написать в Telegram' },
+    { v: 'max', l: 'Макс', icon: '💬', placeholder: 'max.ru/username', defaultLabel: 'Написать в Макс' },
+    { v: 'link', l: 'Своя ссылка', icon: '🔗', placeholder: 'https://...', defaultLabel: 'Перейти по ссылке' }
+  ];
+
+  const addLink = () => {
+    if (links.length >= 5) return showToast('Можно добавить до 5 ссылок');
+    setLinks([...links, { text: '', url: '', type: 'external' }]);
+  };
+  const removeLink = (i) => setLinks(links.filter((_, idx) => idx !== i));
+  const updateLink = (i, field, val) => setLinks(links.map((l, idx) => idx === i ? { ...l, [field]: val } : l));
+
+  const addContact = () => {
+    if (contacts.length >= 5) return showToast('Максимум 5 способов связи');
+    setContacts([...contacts, { type: 'call', label: 'Позвонить менеджеру', value: '' }]);
+  };
+  const removeContact = (i) => setContacts(contacts.filter((_, idx) => idx !== i));
+  const updateContact = (i, field, val) => setContacts(contacts.map((c, idx) => {
+    if (idx !== i) return c;
+    // When type changes, auto-update label to new default unless user already customized it
+    if (field === 'type') {
+      const oldDefault = messengerTypes.find(m => m.v === c.type)?.defaultLabel;
+      const newDefault = messengerTypes.find(m => m.v === val)?.defaultLabel;
+      const labelWasDefault = !c.label || c.label === oldDefault;
+      return { ...c, type: val, label: labelWasDefault ? newDefault : c.label };
+    }
+    return { ...c, [field]: val };
+  }));
+
+  const addPoll = () => {
+    if (polls.length >= 3) return showToast('Максимум 3 вопроса в одной сторис');
+    setPolls([...polls, { question: '', type: 'single', options: ['', '', ''] }]);
+  };
+  const removePoll = (i) => setPolls(polls.filter((_, idx) => idx !== i));
+  const updatePoll = (i, field, val) => setPolls(polls.map((p, idx) => idx === i ? { ...p, [field]: val } : p));
+  const updatePollOpt = (pi, oi, val) => setPolls(polls.map((p, idx) =>
+    idx === pi ? { ...p, options: p.options.map((o, j) => j === oi ? val : o) } : p
+  ));
+  const addPollOpt = (pi) => setPolls(polls.map((p, idx) =>
+    idx === pi ? (p.options.length < 5 ? { ...p, options: [...p.options, ''] } : p) : p
+  ));
+  const removePollOpt = (pi, oi) => setPolls(polls.map((p, idx) =>
+    idx === pi ? { ...p, options: p.options.filter((_, j) => j !== oi) } : p
+  ));
+
+  const toggleCity = (c) => {
+    if (targetCities.includes(c)) setTargetCities(targetCities.filter(x => x !== c));
+    else setTargetCities([...targetCities, c]);
+  };
+  const togglePartner = (p) => {
+    if (targetPartners.includes(p)) setTargetPartners(targetPartners.filter(x => x !== p));
+    else setTargetPartners([...targetPartners, p]);
+  };
+  const toggleReaction = (e) => {
+    if (customReactions.includes(e)) {
+      if (customReactions.length > 1) setCustomReactions(customReactions.filter(x => x !== e));
+      else showToast('Хотя бы одна реакция должна быть включена');
+    } else {
+      if (customReactions.length < 4) setCustomReactions([...customReactions, e]);
+      else showToast('Максимум 4 реакции');
+    }
+  };
+
+  const handleFileUpload = (kind) => {
+    // Mock upload — real impl would validate & process actual files
+    const validVideoSecs = 45;
+    if (kind === 'video_too_long') {
+      setContentError('Видео длиннее 60 сек (загружено 1:32). Сократите ролик и попробуйте снова.');
+      return;
+    }
+    if (kind === 'wrong_format') {
+      setContentError('Неподдерживаемый формат (.mkv). Поддерживается: JPG, PNG, MP4, MOV, WebM');
+      return;
+    }
+    setContentError('');
+    setContentFile({ name: 'urgent_shifts_msk.mp4', size: '4.2 МБ', type: 'video', duration: validVideoSecs });
+  };
+
+  const insertEmoji = (emoji) => {
+    if (emojiTarget === 'title') setTitle(t => (t + emoji).slice(0, 60));
+    else if (emojiTarget === 'description') setDescription(d => (d + emoji).slice(0, 200));
+    setShowEmojiPicker(false);
+  };
+
+  const covers = [
+    'bg-gradient-to-br from-orange-400 via-red-500 to-rose-600',
+    'bg-gradient-to-br from-violet-500 via-purple-600 to-indigo-700',
+    'bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600',
+    'bg-gradient-to-br from-amber-400 via-orange-500 to-red-500',
+    'bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600',
+    'bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900'
+  ];
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6 p-6">
+      {/* Preview column — теперь слева */}
+      <PhonePreview
+        title={title}
+        description={description}
+        links={links}
+        hasContact={hasContact}
+        contacts={contacts}
+        hasPoll={hasPoll}
+        polls={polls}
+        contentFile={contentFile}
+        coverColor={abVariant === 'B' ? coverColorB : coverColor}
+        reactionsEnabled={reactionsEnabled}
+        customReactions={customReactions}
+        hasCopay={hasCopay}
+        copay={copay}
+        isUrgent={isUrgent}
+        pollUserAnswered={pollUserAnswered}
+        setPollUserAnswered={setPollUserAnswered}
+      />
+      {/* Form column — теперь справа */}
+      <div className="space-y-5 min-w-0">
+        {/* Cover & content */}
+        <Card title="Контент сторис" icon={<ImageIcon size={16} />}>
+          <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-4">
+            <div>
+              <div className="text-xs text-slate-500 mb-2">Обложка</div>
+              <div className={`${coverColor} aspect-[9/16] rounded-xl border-2 border-dashed border-white/30 flex items-center justify-center cursor-pointer hover:opacity-90 transition`}>
+                <Plus size={28} className="text-white/80" />
+              </div>
+              <div className="text-[10px] text-slate-400 mt-1.5 text-center">JPG, PNG · до 5 МБ</div>
+            </div>
+            <div>
+              <div className="text-xs text-slate-500 mb-2">Основной контент</div>
+              {contentFile && !contentError ? (
+                <div className="border-2 border-emerald-300 bg-emerald-50/50 rounded-xl p-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                      {contentFile.type === 'video' ? <Video size={18} className="text-emerald-700" /> : <ImageIcon size={18} className="text-emerald-700" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-slate-800 truncate">{contentFile.name}</div>
+                      <div className="text-xs text-slate-600">
+                        {contentFile.size}
+                        {contentFile.type === 'video' && ` · 0:${String(contentFile.duration).padStart(2,'0')}`}
+                        {' · '}{contentFile.type === 'video' ? 'видео' : 'фото'}
+                      </div>
+                    </div>
+                    <button onClick={() => setContentFile(null)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-white rounded transition">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                  {contentFile.type === 'video' && (
+                    <div className="mt-2 flex items-center gap-1.5 text-[11px] text-emerald-700">
+                      <CheckCircle2 size={12} /> Длительность в пределах лимита (60 сек)
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div
+                  onClick={() => handleFileUpload('valid')}
+                  className="border-2 border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50/30 rounded-xl p-5 text-center cursor-pointer transition"
+                >
+                  <div className="w-10 h-10 mx-auto mb-2 bg-slate-100 rounded-full flex items-center justify-center">
+                    <Upload size={18} className="text-slate-500" />
+                  </div>
+                  <div className="text-sm font-medium text-slate-700">Загрузить файл</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5">JPG, PNG, MP4, MOV, WebM</div>
+                  <div className="text-[11px] text-slate-400">Видео — до 60 сек, до 50 МБ</div>
+                </div>
+              )}
+
+              {contentError && (
+                <div className="mt-2 flex items-start gap-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg p-2.5">
+                  <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-semibold">Ошибка загрузки</div>
+                    <div>{contentError}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Demo error triggers */}
+              <div className="mt-2 flex gap-1.5 text-[10px]">
+                <span className="text-slate-400">Демо ошибок:</span>
+                <button onClick={() => handleFileUpload('video_too_long')} className="text-amber-600 hover:underline">видео {'>'} 60с</button>
+                <button onClick={() => handleFileUpload('wrong_format')} className="text-amber-600 hover:underline">неверный формат</button>
+                <button onClick={() => { setContentError(''); handleFileUpload('valid'); }} className="text-emerald-600 hover:underline">сбросить</button>
+              </div>
+
+              <div className="text-xs text-slate-500 mb-1.5 mt-3">Подложка (тестовая палитра)</div>
+              <div className="flex flex-wrap gap-2">
+                {covers.map((c, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCoverColor(c)}
+                    className={`w-9 h-9 rounded-lg ${c} ring-2 transition ${coverColor === c ? 'ring-blue-600 ring-offset-2' : 'ring-transparent'}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Title & description */}
+        <Card title="Текст" icon={<Edit3 size={16} />}>
+          <Field label="Заголовок" hint={`${title.length}/60`}>
+            <div className="relative">
+              <input
+                value={title}
+                onChange={e => setTitle(e.target.value.slice(0, 60))}
+                className="w-full px-3 py-2.5 pr-10 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+                placeholder="Введите заголовок"
+              />
+              <button
+                onClick={() => { setEmojiTarget('title'); setShowEmojiPicker(!showEmojiPicker || emojiTarget !== 'title'); }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-slate-200 text-slate-500"
+                title="Вставить эмодзи"
+              >
+                <Smile size={16} />
+              </button>
+            </div>
+          </Field>
+
+          <Field label="Описание" hint={`${description.length}/200`}>
+            {/* Formatting toolbar */}
+            <div className="flex items-center gap-0.5 px-2 py-1.5 bg-slate-100 rounded-t-lg border border-slate-200 border-b-0">
+              {[
+                { i: <Bold size={14} />, t: 'Жирный (Ctrl+B)' },
+                { i: <Italic size={14} />, t: 'Курсив (Ctrl+I)' },
+                { i: <Underline size={14} />, t: 'Подчёркнутый' },
+                { i: <Strikethrough size={14} />, t: 'Зачёркнутый' }
+              ].map((b, i) => (
+                <button
+                  key={i}
+                  onClick={() => showToast(`Применено: ${b.t}`)}
+                  title={b.t}
+                  className="p-1.5 rounded hover:bg-white text-slate-600 hover:text-slate-900 transition"
+                >{b.i}</button>
+              ))}
+              <div className="w-px h-4 bg-slate-300 mx-1" />
+              <button
+                onClick={() => showToast('Список')}
+                title="Список"
+                className="p-1.5 rounded hover:bg-white text-slate-600 hover:text-slate-900 transition"
+              ><List size={14} /></button>
+              <button
+                onClick={() => showToast('Ссылка в тексте')}
+                title="Ссылка"
+                className="p-1.5 rounded hover:bg-white text-slate-600 hover:text-slate-900 transition"
+              ><Link2 size={14} /></button>
+              <div className="w-px h-4 bg-slate-300 mx-1" />
+              <button
+                onClick={() => { setEmojiTarget('description'); setShowEmojiPicker(!showEmojiPicker || emojiTarget !== 'description'); }}
+                title="Эмодзи"
+                className="p-1.5 rounded hover:bg-white text-slate-600 hover:text-slate-900 transition flex items-center gap-1"
+              ><Smile size={14} /><ChevronDown size={10} /></button>
+              <div className="ml-auto text-[11px] text-slate-400">{description.length}/200</div>
+            </div>
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value.slice(0, 200))}
+              rows={3}
+              className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 border-t-0 rounded-b-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 resize-none"
+              placeholder="Опишите акцию"
+            />
+          </Field>
+
+          {/* Emoji picker */}
+          {showEmojiPicker && (
+            <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-lg -mt-2">
+              <div className="text-[11px] text-slate-500 mb-2 flex items-center justify-between">
+                <span>Эмодзи для «{emojiTarget === 'title' ? 'Заголовка' : 'Описания'}»</span>
+                <button onClick={() => setShowEmojiPicker(false)} className="text-slate-400 hover:text-slate-700"><X size={12} /></button>
+              </div>
+              <div className="grid grid-cols-12 gap-1">
+                {['😀','😎','🔥','❤️','💪','👍','👎','🙌','✨','⚡','💯','🎯','🎉','🚀','💰','💵','📍','📞','💬','✅','❌','⭐','🏆','🎁','🆕','📢','⏰','📅','🔔','💡','🎯','🌟','💎','🎬','📦','🚚','🏪','👷','🧹','🛠️','📊','📈','📉','💼','🤝','✊','👏','🙏','😊'].map(e => (
+                  <button
+                    key={e}
+                    onClick={() => insertEmoji(e)}
+                    className="text-lg p-1 hover:bg-slate-100 rounded transition"
+                  >{e}</button>
+                ))}
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* Links */}
+        <Card
+          title={`Ссылки (${links.length}/5)`}
+          icon={<Link2 size={16} />}
+          action={
+            <button onClick={addLink} className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+              <Plus size={14} /> Добавить ссылку
+            </button>
+          }
+        >
+          <div className="space-y-3">
+            {links.map((l, i) => (
+              <div key={i} className="flex gap-2 items-start">
+                <select
+                  value={l.type}
+                  onChange={e => updateLink(i, 'type', e.target.value)}
+                  className="px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                  title="Тип ссылки"
+                >
+                  <option value="internal">📱 В приложении</option>
+                  <option value="external">🌐 Внешняя</option>
+                </select>
+                <input
+                  value={l.text}
+                  onChange={e => updateLink(i, 'text', e.target.value)}
+                  placeholder="Текст кнопки"
+                  className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                />
+                <input
+                  value={l.url}
+                  onChange={e => updateLink(i, 'url', e.target.value)}
+                  placeholder={l.type === 'internal' ? 'app://shifts/123' : 'https://...'}
+                  className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                />
+                <button onClick={() => removeLink(i)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 text-[11px] text-slate-500 flex items-center gap-1.5">
+            <Hash size={11} /> UTM-метки добавятся автоматически при публикации
+          </div>
+        </Card>
+
+        {/* Contact button — multi-contact */}
+        <Card
+          title={`Кнопка «Связаться» (${contacts.filter(c => c.value).length})`}
+          icon={<Phone size={16} />}
+          action={<Toggle on={hasContact} onChange={setHasContact} />}
+        >
+          {hasContact && (
+            <div className="space-y-3">
+              <div className="text-xs text-slate-600 -mt-1">
+                Исполнитель в сторис нажмёт «Связаться» и в bottom-sheet выберет один из способов: позвонить, написать в мессенджер, перейти по ссылке. Иконка и название канала добавляются автоматически — в подписи укажите только <b>что человек должен сделать</b> («Позвонить менеджеру», «Написать в Telegram»).
+              </div>
+
+              {contacts.map((c, i) => {
+                const meta = messengerTypes.find(m => m.v === c.type) || messengerTypes[0];
+                return (
+                  <div key={i} className="flex gap-2 items-start bg-slate-50 rounded-lg p-2.5">
+                    <span className="text-2xl mt-1">{meta.icon}</span>
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <select
+                        value={c.type}
+                        onChange={e => updateContact(i, 'type', e.target.value)}
+                        className="px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs"
+                      >
+                        {messengerTypes.map(m => <option key={m.v} value={m.v}>{m.l}</option>)}
+                      </select>
+                      <input
+                        value={c.label}
+                        onChange={e => updateContact(i, 'label', e.target.value)}
+                        placeholder={meta.defaultLabel}
+                        className="px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs"
+                        title="Подпись = действие. Канал и иконка добавляются автоматически."
+                      />
+                      <input
+                        value={c.value}
+                        onChange={e => updateContact(i, 'value', e.target.value)}
+                        placeholder={meta.placeholder}
+                        className="px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs"
+                      />
+                    </div>
+                    <button onClick={() => removeContact(i)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-white rounded transition mt-0.5">
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                );
+              })}
+
+              <button
+                onClick={addContact}
+                className="w-full py-2 border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50/30 rounded-lg text-xs font-semibold text-slate-600 hover:text-blue-700 transition flex items-center justify-center gap-1.5"
+              >
+                <Plus size={14} /> Добавить способ связи
+              </button>
+
+              <div className="flex items-start gap-2 text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg p-2.5">
+                <AlertTriangle size={13} className="flex-shrink-0 mt-0.5" />
+                <span>Перед звонком исполнителю показывается подтверждение «Позвонить менеджеру?». Для мессенджеров — открывается приложение. Для своей ссылки — открывается WebView внутри РР.</span>
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* Polls — multi-question */}
+        <Card
+          title={`Опросы (${polls.length}/3)`}
+          icon={<BarChart3 size={16} />}
+          action={<Toggle on={hasPoll} onChange={setHasPoll} />}
+        >
+          {hasPoll && (
+            <div className="space-y-4">
+              {polls.map((p, pi) => (
+                <div key={pi} className="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-xs font-bold text-slate-700 uppercase tracking-wider">Вопрос {pi + 1}</div>
+                    {polls.length > 1 && (
+                      <button onClick={() => removePoll(pi)} className="p-1 text-slate-400 hover:text-red-500 hover:bg-white rounded">
+                        <Trash2 size={13} />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    {/* Question type */}
+                    <div className="flex gap-2">
+                      {[
+                        { v: 'single', l: 'Один ответ', i: '⚪' },
+                        { v: 'multi', l: 'Несколько ответов', i: '☑️' }
+                      ].map(t => (
+                        <button
+                          key={t.v}
+                          onClick={() => updatePoll(pi, 'type', t.v)}
+                          className={`px-2.5 py-1 rounded-md text-[11px] font-medium border transition ${
+                            p.type === t.v
+                              ? 'bg-blue-50 border-blue-500 text-blue-700'
+                              : 'bg-white border-slate-200 text-slate-600'
+                          }`}
+                        >
+                          {t.i} {t.l}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Question text */}
+                    <input
+                      value={p.question}
+                      onChange={e => updatePoll(pi, 'question', e.target.value)}
+                      placeholder="Текст вопроса"
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                    />
+
+                    {/* Options */}
+                    <div className="space-y-1.5">
+                      {p.options.map((opt, oi) => (
+                        <div key={oi} className="flex items-center gap-2">
+                          <span className="w-6 text-xs text-slate-400">{oi + 1}.</span>
+                          <input
+                            value={opt}
+                            onChange={e => updatePollOpt(pi, oi, e.target.value)}
+                            placeholder={`Вариант ${oi + 1}`}
+                            className="flex-1 px-2 py-1.5 bg-white border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                          />
+                          {p.options.length > 2 && (
+                            <button onClick={() => removePollOpt(pi, oi)} className="p-1 text-slate-300 hover:text-red-500">
+                              <X size={12} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      {p.options.length < 5 && (
+                        <button
+                          onClick={() => addPollOpt(pi)}
+                          className="text-xs text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 ml-7"
+                        >
+                          <Plus size={12} /> вариант
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {polls.length < 3 && (
+                <button
+                  onClick={addPoll}
+                  className="w-full py-2 border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50/30 rounded-lg text-xs font-semibold text-slate-600 hover:text-blue-700 transition flex items-center justify-center gap-1.5"
+                >
+                  <Plus size={14} /> Добавить вопрос (макс. 3)
+                </button>
+              )}
+
+              {/* Anti-fraud */}
+              <div className="bg-slate-50 rounded-lg p-3 space-y-2">
+                <div className="text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                  <ShieldCheck size={13} className="text-emerald-600" /> Защита от случайных и накрученных ответов
+                </div>
+
+                {/* One-time poll — always-on rule */}
+                <div className="flex items-start gap-2.5 bg-emerald-50 border border-emerald-200 rounded-lg p-2.5 mb-2">
+                  <CheckCircle2 size={14} className="text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <div className="text-xs font-bold text-emerald-900">Опрос показывается только один раз</div>
+                    <div className="text-[11px] text-emerald-800 leading-snug">
+                      Исполнитель, который уже ответил, при следующем открытии сторис видит свой ответ выделенным (read-only) — но не может изменить. Те, кто увидел сторис, но не ответил — увидят опрос снова до 3 раз (с интервалом). Это системное правило, не отключается.
+                    </div>
+                  </div>
+                </div>
+                {[
+                  { k: 'delay', l: 'Опрос появляется через 1.5 сек', d: 'Кто свайпает дальше — не увидит' },
+                  { k: 'confirm', l: 'Подтверждение выбора', d: '«Вы выбрали X. Подтвердить?» — отсекает 80% случайных тапов' },
+                  { k: 'oneVote', l: 'Один ответ с устройства', d: 'Антифрод по device ID' },
+                  { k: 'randomize', l: 'Случайный порядок вариантов', d: 'У каждого свой — не работает «все жмут первый»' }
+                ].map(p => (
+                  <label key={p.k} className="flex items-start gap-2.5 cursor-pointer p-1.5 hover:bg-white rounded">
+                    <input
+                      type="checkbox"
+                      checked={pollProtection[p.k]}
+                      onChange={e => setPollProtection({ ...pollProtection, [p.k]: e.target.checked })}
+                      className="mt-0.5 w-4 h-4 accent-blue-600"
+                    />
+                    <div className="flex-1">
+                      <div className="text-xs font-medium text-slate-800">{p.l}</div>
+                      <div className="text-[11px] text-slate-500">{p.d}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+
+              <Field label="Дополнительный фильтр: кому из увидевших задать вопрос">
+                <select
+                  value={pollAudienceFilter}
+                  onChange={e => setPollAudienceFilter(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                >
+                  <option value="all">Всем, кто увидел сторис</option>
+                  <option value="newcomers">Только новичкам (&lt; 5 смен)</option>
+                  <option value="active">Только активным (&gt; 10 смен за месяц)</option>
+                  <option value="inactive">«Спящим» (нет смен 30+ дней)</option>
+                  <option value="experienced">Опытным (&gt; 50 смен)</option>
+                </select>
+              </Field>
+
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-start gap-2">
+                <Download size={14} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="text-xs text-blue-900">
+                  <div className="font-semibold mb-0.5">Экспорт респондентов в Excel</div>
+                  <div className="text-blue-800 leading-snug">Доступен во вкладке «Аналитика». Каждый вопрос — отдельный лист со своими ответами. Плюс лист «Кто увидел, но не прошёл».</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* Targeting */}
+        <Card title="Таргетинг (кому показать)" icon={<Target size={16} />}>
+          {/* Mode tabs */}
+          <div className="flex gap-1 mb-4 bg-slate-100 p-1 rounded-lg">
+            {[
+              { v: 'filters', l: 'По фильтрам', i: <Filter size={13} /> },
+              { v: 'upload', l: 'Список из Excel', i: <FileSpreadsheet size={13} /> }
+            ].map(t => (
+              <button
+                key={t.v}
+                onClick={() => setTargetMode(t.v)}
+                className={`flex-1 px-3 py-1.5 rounded-md text-xs font-medium flex items-center justify-center gap-1.5 transition ${
+                  targetMode === t.v ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >{t.i}{t.l}</button>
+            ))}
+          </div>
+
+          {targetMode === 'filters' && (
+            <>
+              {/* Quick segments */}
+              <Field label="Быстрые сегменты">
+                <div className="flex flex-wrap gap-2">
+                  {quickSegments.map(s => (
+                    <button
+                      key={s.v}
+                      onClick={() => setQuickSegment(quickSegment === s.v ? null : s.v)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition flex items-center gap-1.5 ${
+                        quickSegment === s.v
+                          ? 'bg-violet-600 border-violet-600 text-white'
+                          : 'bg-white border-slate-200 text-slate-600 hover:border-violet-300'
+                      }`}
+                    >
+                      <span>{s.icon}</span>{s.l}
+                    </button>
+                  ))}
+                </div>
+              </Field>
+
+              {/* Cities */}
+              <Field label="Города">
+                <div className="flex flex-wrap gap-2 mb-2">
+                  <button
+                    onClick={() => setTargetCities(targetCities.length === allCities.length ? [] : allCities)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
+                      targetCities.length === allCities.length
+                        ? 'bg-blue-600 border-blue-600 text-white'
+                        : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    Все города
+                  </button>
+                  {allCities.map(c => (
+                    <button
+                      key={c}
+                      onClick={() => toggleCity(c)}
+                      title={`Включает «${cityChildren[c]}»`}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
+                        targetCities.includes(c)
+                          ? 'bg-blue-600 border-blue-600 text-white'
+                          : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer text-[11px] text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={groupParentCity}
+                    onChange={e => setGroupParentCity(e.target.checked)}
+                    className="w-3.5 h-3.5 accent-blue-600"
+                  />
+                  <span>Учитывать область как родительский город (Москва ← Московская обл.)</span>
+                </label>
+              </Field>
+
+              {/* Partner — multi-select dropdown of OOO/IP entities */}
+              <Field label="Клиент / партнёр (ООО, ИП)" hint="Из ERP. Можно выбрать несколько.">
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-1.5 min-h-[36px] p-2 bg-slate-50 border border-slate-200 rounded-lg">
+                    {targetPartners.length === 0 ? (
+                      <span className="text-xs text-slate-400">Не выбрано — сторис увидят все партнёры</span>
+                    ) : (
+                      targetPartners.map(pid => {
+                        const p = partners.find(x => x.id === pid);
+                        return p ? (
+                          <span key={pid} className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs font-medium">
+                            <Building2 size={10} />{p.short}
+                            <button
+                              onClick={() => togglePartner(pid)}
+                              className="hover:text-blue-900 ml-0.5"
+                            ><X size={10} /></button>
+                          </span>
+                        ) : null;
+                      })
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {partners.filter(p => !targetPartners.includes(p.id)).map(p => (
+                      <button
+                        key={p.id}
+                        onClick={() => togglePartner(p.id)}
+                        className="px-2.5 py-1 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 rounded-md text-[11px] text-slate-700 transition flex items-center gap-1"
+                      >
+                        <Plus size={10} />{p.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </Field>
+
+              {/* Object / sub-partner */}
+              <Field label="Объект / точка / РЦ" hint="Конкретная локация партнёра">
+                <select
+                  value={targetSubPartner}
+                  onChange={e => setTargetSubPartner(e.target.value)}
+                  disabled={targetPartners.length === 0}
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 disabled:opacity-50"
+                >
+                  {subPartners.map(s => <option key={s}>{s}</option>)}
+                </select>
+                {targetPartners.length === 0 && (
+                  <div className="text-[10px] text-slate-400 mt-1">Сначала выберите партнёра</div>
+                )}
+              </Field>
+
+              {/* Profession */}
+              <Field label="Профессия">
+                <select
+                  value={erpFilters.profession}
+                  onChange={e => setErpFilters({ ...erpFilters, profession: e.target.value })}
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                >
+                  {professionList.map(p => <option key={p}>{p}</option>)}
+                </select>
+              </Field>
+
+              {/* Самозанятость fixed note */}
+              <div className="text-[11px] text-slate-500 bg-slate-50 rounded p-2 flex items-center gap-1.5">
+                <Briefcase size={12} className="text-slate-400" />
+                <span>Тип занятости: <b className="text-slate-700">только самозанятые</b> (системно зашит в платформу — другие типы не используются)</span>
+              </div>
+
+              {/* ERP filters — accordion sections matching ERP UI */}
+              <div className="mt-4 pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <ShieldCheck size={13} className="text-blue-600" /> Расширенные фильтры из ERP
+                  </div>
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">База: 800 000 исполнителей</span>
+                </div>
+
+                <div className="space-y-2">
+                  {/* Section: Основные сведения */}
+                  <details className="bg-slate-50 border border-slate-200 rounded-lg group">
+                    <summary className="px-3 py-2.5 cursor-pointer flex items-center justify-between list-none">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-xs text-slate-800">📋 Основные сведения</span>
+                        <span className="text-[10px] text-slate-400">Дата регистрации · Гражданство · Пол · Возраст · Метро · Документ</span>
+                      </div>
+                      <ChevronRight size={12} className="text-slate-400 group-open:rotate-90 transition" />
+                    </summary>
+                    <div className="px-3 pb-3 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-2.5 border-t border-slate-200">
+                      <div>
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Дата регистрации (от)</label>
+                        <input type="date" value={erpFilters.registrationDateFrom}
+                          onChange={e => setErpFilters({ ...erpFilters, registrationDateFrom: e.target.value })}
+                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Гражданство</label>
+                        <select value={erpFilters.citizenship}
+                          onChange={e => setErpFilters({ ...erpFilters, citizenship: e.target.value })}
+                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
+                          <option value="any">Любое</option>
+                          <option value="RU">РФ</option>
+                          <option value="BY">Беларусь</option>
+                          <option value="KZ">Казахстан</option>
+                          <option value="UZ">Узбекистан</option>
+                          <option value="KG">Кыргызстан</option>
+                          <option value="AM">Армения</option>
+                          <option value="TJ">Таджикистан</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Пол</label>
+                        <select value={erpFilters.gender}
+                          onChange={e => setErpFilters({ ...erpFilters, gender: e.target.value })}
+                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
+                          <option value="any">Любой</option>
+                          <option value="M">Мужской</option>
+                          <option value="F">Женский</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Возраст ({erpFilters.ageFrom}–{erpFilters.ageTo})</label>
+                        <div className="flex items-center gap-1.5">
+                          <input type="number" min="14" max="80" value={erpFilters.ageFrom}
+                            onChange={e => setErpFilters({ ...erpFilters, ageFrom: +e.target.value })}
+                            className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
+                          <span className="text-slate-400 text-xs">—</span>
+                          <input type="number" min="14" max="80" value={erpFilters.ageTo}
+                            onChange={e => setErpFilters({ ...erpFilters, ageTo: +e.target.value })}
+                            className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Станция метро</label>
+                        <input type="text" placeholder="например: Хамовники"
+                          value={erpFilters.metroStation}
+                          onChange={e => setErpFilters({ ...erpFilters, metroStation: e.target.value })}
+                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Самозанятость</label>
+                        <select value={erpFilters.samozanyatStatus}
+                          onChange={e => setErpFilters({ ...erpFilters, samozanyatStatus: e.target.value })}
+                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
+                          <option value="active">Активная (по умолчанию)</option>
+                          <option value="suspended">Приостановлена</option>
+                          <option value="all">Любой статус</option>
+                        </select>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Тип документа</label>
+                        <select value={erpFilters.documentType}
+                          onChange={e => setErpFilters({ ...erpFilters, documentType: e.target.value })}
+                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
+                          <option value="any">Любой</option>
+                          <option value="passport_rf">Паспорт РФ</option>
+                          <option value="foreign">Иностранный паспорт</option>
+                          <option value="patent">Патент на работу</option>
+                          <option value="rvp">РВП</option>
+                          <option value="vnj">ВНЖ</option>
+                        </select>
+                      </div>
+                    </div>
+                  </details>
+
+                  {/* Section: Задания */}
+                  <details className="bg-slate-50 border border-slate-200 rounded-lg group">
+                    <summary className="px-3 py-2.5 cursor-pointer flex items-center justify-between list-none">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-xs text-slate-800">📊 Задания</span>
+                        <span className="text-[10px] text-slate-400">Выполнено за период · Диапазон</span>
+                      </div>
+                      <ChevronRight size={12} className="text-slate-400 group-open:rotate-90 transition" />
+                    </summary>
+                    <div className="px-3 pb-3 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-2.5 border-t border-slate-200">
+                      <div>
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Выполнено за период</label>
+                        <select value={erpFilters.completedPeriod}
+                          onChange={e => setErpFilters({ ...erpFilters, completedPeriod: e.target.value })}
+                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
+                          <option value="all">За всё время</option>
+                          <option value="7d">За 7 дней</option>
+                          <option value="30d">За 30 дней</option>
+                          <option value="90d">За 90 дней</option>
+                          <option value="365d">За год</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Кол-во смен ({erpFilters.completedFrom}–{erpFilters.completedTo})</label>
+                        <div className="flex items-center gap-1.5">
+                          <input type="number" min="0" value={erpFilters.completedFrom}
+                            onChange={e => setErpFilters({ ...erpFilters, completedFrom: +e.target.value })}
+                            className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
+                          <span className="text-slate-400 text-xs">—</span>
+                          <input type="number" min="0" value={erpFilters.completedTo}
+                            onChange={e => setErpFilters({ ...erpFilters, completedTo: +e.target.value })}
+                            className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
+                        </div>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Минимальный рейтинг (10-балльная шкала)</label>
+                        <div className="flex items-center gap-2">
+                          <input type="range" min="0" max="10" step="0.1"
+                            value={erpFilters.minRating}
+                            onChange={e => setErpFilters({ ...erpFilters, minRating: +e.target.value })}
+                            className="flex-1 accent-blue-600" />
+                          <span className="text-sm font-semibold text-slate-700 tabular-nums w-12 flex items-center gap-0.5">
+                            <Star size={12} className="text-amber-500 fill-amber-500" />{erpFilters.minRating.toFixed(1)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </details>
+
+                  {/* Section: Дополнительные */}
+                  <details className="bg-slate-50 border border-slate-200 rounded-lg group">
+                    <summary className="px-3 py-2.5 cursor-pointer flex items-center justify-between list-none">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-xs text-slate-800">⚙️ Дополнительные</span>
+                        <span className="text-[10px] text-slate-400">Онлайн · Не забанены · Штраф · Вахта</span>
+                      </div>
+                      <ChevronRight size={12} className="text-slate-400 group-open:rotate-90 transition" />
+                    </summary>
+                    <div className="px-3 pb-3 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-1.5 border-t border-slate-200">
+                      {[
+                        { k: 'online', l: 'Онлайн (сейчас в приложении)' },
+                        { k: 'emptyProfiles', l: 'Включая пустые профили' },
+                        { k: 'unpaidFineLastMonth', l: 'Неоплаченный штраф за последний месяц' },
+                        { k: 'notBanned', l: 'Только не забаненные' },
+                        { k: 'vahta', l: 'Открыт к вахте (междугородним сменам)' },
+                      ].map(f => (
+                        <label key={f.k} className="flex items-center gap-2 cursor-pointer p-1.5 hover:bg-white rounded-md">
+                          <input type="checkbox"
+                            checked={erpFilters[f.k]}
+                            onChange={e => setErpFilters({ ...erpFilters, [f.k]: e.target.checked })}
+                            className="w-3.5 h-3.5 accent-blue-600" />
+                          <span className="text-[11px] text-slate-700">{f.l}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </details>
+
+                  {/* Section: Активность */}
+                  <details className="bg-slate-50 border border-slate-200 rounded-lg group">
+                    <summary className="px-3 py-2.5 cursor-pointer flex items-center justify-between list-none">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-xs text-slate-800">🟢 Активность и платежи</span>
+                        <span className="text-[10px] text-slate-400">Заходил · Запрет оплаты · Тэги</span>
+                      </div>
+                      <ChevronRight size={12} className="text-slate-400 group-open:rotate-90 transition" />
+                    </summary>
+                    <div className="px-3 pb-3 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-2.5 border-t border-slate-200">
+                      <div className="sm:col-span-2">
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Заходил в последний раз ({erpFilters.lastVisitDaysFrom}–{erpFilters.lastVisitDaysTo} дн.)</label>
+                        <div className="flex items-center gap-1.5">
+                          <input type="number" min="0" value={erpFilters.lastVisitDaysFrom}
+                            onChange={e => setErpFilters({ ...erpFilters, lastVisitDaysFrom: +e.target.value })}
+                            className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
+                          <span className="text-slate-400 text-xs">—</span>
+                          <input type="number" min="0" value={erpFilters.lastVisitDaysTo}
+                            onChange={e => setErpFilters({ ...erpFilters, lastVisitDaysTo: +e.target.value })}
+                            className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Запрет оплаты</label>
+                        <select value={erpFilters.paymentBan}
+                          onChange={e => setErpFilters({ ...erpFilters, paymentBan: e.target.value })}
+                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
+                          <option value="any">Не учитывать</option>
+                          <option value="no">Без запрета (можно платить)</option>
+                          <option value="yes">С запретом (заблокирована оплата)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Чёрный список (партнёр)</label>
+                        <select value={erpFilters.blacklistedClient}
+                          onChange={e => setErpFilters({ ...erpFilters, blacklistedClient: e.target.value })}
+                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
+                          <option value="">Не учитывать</option>
+                          {partners.map(p => <option key={p.id} value={p.id}>Не в ЧС: {p.short}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  </details>
+
+                  {/* Section: Рекрутер */}
+                  <details className="bg-slate-50 border border-slate-200 rounded-lg group">
+                    <summary className="px-3 py-2.5 cursor-pointer flex items-center justify-between list-none">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-xs text-slate-800">👤 Рекрутер</span>
+                        <span className="text-[10px] text-slate-400">Источник · Рекрутер · Верификация</span>
+                      </div>
+                      <ChevronRight size={12} className="text-slate-400 group-open:rotate-90 transition" />
+                    </summary>
+                    <div className="px-3 pb-3 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-2.5 border-t border-slate-200">
+                      <div>
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Источник привлечения</label>
+                        <select value={erpFilters.source}
+                          onChange={e => setErpFilters({ ...erpFilters, source: e.target.value })}
+                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
+                          {sources.map(s => <option key={s} value={s === 'Любой' ? 'any' : s}>{s}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Рекрутер (привлёк)</label>
+                        <select value={erpFilters.recruiter}
+                          onChange={e => setErpFilters({ ...erpFilters, recruiter: e.target.value })}
+                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
+                          {recruiters.map(r => <option key={r} value={r === 'Любой' ? 'any' : r}>{r}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Дата первой оплаты (от)</label>
+                        <input type="date" value={erpFilters.firstPaymentDate}
+                          onChange={e => setErpFilters({ ...erpFilters, firstPaymentDate: e.target.value })}
+                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Дата первого задания (от)</label>
+                        <input type="date" value={erpFilters.firstAssignmentDate}
+                          onChange={e => setErpFilters({ ...erpFilters, firstAssignmentDate: e.target.value })}
+                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Мобильное приложение</label>
+                        <select value={erpFilters.mobileApp}
+                          onChange={e => setErpFilters({ ...erpFilters, mobileApp: e.target.value })}
+                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
+                          <option value="any">Любое состояние</option>
+                          <option value="has_app">Установлено</option>
+                          <option value="no_app">Не установлено</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Верификация платёжных данных</label>
+                        <select value={erpFilters.paymentDataVerified}
+                          onChange={e => setErpFilters({ ...erpFilters, paymentDataVerified: e.target.value })}
+                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
+                          <option value="any">Не учитывать</option>
+                          <option value="verified">Верифицирована</option>
+                          <option value="not_verified">Не верифицирована</option>
+                        </select>
+                      </div>
+                    </div>
+                  </details>
+
+                  {/* Section: Партнёрские */}
+                  <details className="bg-slate-50 border border-slate-200 rounded-lg group">
+                    <summary className="px-3 py-2.5 cursor-pointer flex items-center justify-between list-none">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-xs text-slate-800">🤝 Партнёрские</span>
+                        <span className="text-[10px] text-slate-400">Оператор</span>
+                      </div>
+                      <ChevronRight size={12} className="text-slate-400 group-open:rotate-90 transition" />
+                    </summary>
+                    <div className="px-3 pb-3 pt-1 border-t border-slate-200">
+                      <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Оператор обработки</label>
+                      <select value={erpFilters.operator}
+                        onChange={e => setErpFilters({ ...erpFilters, operator: e.target.value })}
+                        className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
+                        {operators.map(o => <option key={o} value={o === 'Все операторы' ? 'any' : o}>{o}</option>)}
+                      </select>
+                    </div>
+                  </details>
+                </div>
+              </div>
+
+              {/* Reach estimate */}
+              <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-[11px] text-emerald-700 font-medium">Расчётный охват</div>
+                    <div className="text-xl font-bold text-emerald-800 tabular-nums">~{(50000 + targetCities.length * 12000 + targetPartners.length * 8000).toLocaleString('ru')}</div>
+                    <div className="text-[10px] text-emerald-600">из 800 000 исполнителей в базе</div>
+                  </div>
+                  <Users size={32} className="text-emerald-300" />
+                </div>
+              </div>
+            </>
+          )}
+
+          {targetMode === 'upload' && (
+            <div className="space-y-3">
+              {!uploadedFile ? (
+                <>
+                  <div
+                    onClick={() => setUploadedFile({
+                      name: 'аудитория_май_спящие.xlsx',
+                      total: 12450,
+                      matched: 10872,
+                      notFound: 1578
+                    })}
+                    className="border-2 border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50/30 rounded-xl p-6 text-center cursor-pointer transition"
+                  >
+                    <div className="w-12 h-12 mx-auto mb-2 bg-blue-50 rounded-full flex items-center justify-center">
+                      <Upload size={20} className="text-blue-600" />
+                    </div>
+                    <div className="text-sm font-semibold text-slate-700">
+                      Перетащите файл или нажмите для выбора
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">
+                      Excel с телефонами и/или ИНН · до 50 000 строк
+                    </div>
+                    <div className="text-[11px] text-slate-400 mt-2">.xlsx, .xls, .csv</div>
+                  </div>
+
+                  <div className="flex items-center justify-between bg-blue-50 border border-blue-100 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <FileSpreadsheet size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <div className="text-xs font-semibold text-blue-900">
+                          Шаблон файла аудитории
+                        </div>
+                        <div className="text-[11px] text-blue-700">
+                          Один файл — две колонки. Заполните телефон и/или ИНН в любой комбинации
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => showToast('Скачивается template_audience.xlsx')}
+                      className="px-3 py-1.5 bg-white border border-blue-200 rounded-md text-xs font-semibold text-blue-700 hover:bg-blue-50 flex items-center gap-1.5"
+                    >
+                      <Download size={12} /> Скачать
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                    <FileSpreadsheet size={20} className="text-emerald-600 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-slate-800 truncate">{uploadedFile.name}</div>
+                      <div className="text-xs text-slate-600">Загружено {uploadedFile.total} строк</div>
+                    </div>
+                    <button
+                      onClick={() => setUploadedFile(null)}
+                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-white rounded transition"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-center">
+                      <div className="text-[11px] text-emerald-700 font-medium uppercase tracking-wider">Найдено в базе</div>
+                      <div className="text-2xl font-bold text-emerald-700 tabular-nums mt-0.5">{uploadedFile.matched}</div>
+                      <div className="text-[10px] text-emerald-600">{Math.round(uploadedFile.matched/uploadedFile.total*100)}% совпало</div>
+                    </div>
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-center">
+                      <div className="text-[11px] text-amber-700 font-medium uppercase tracking-wider">Не найдено</div>
+                      <div className="text-2xl font-bold text-amber-700 tabular-nums mt-0.5">{uploadedFile.notFound}</div>
+                      <div className="text-[10px] text-amber-600">не зарегистрированы</div>
+                    </div>
+                  </div>
+
+                  <div className="text-[11px] text-slate-500 bg-slate-50 rounded-lg p-2.5">
+                    💡 «Не найденных» можно выгрузить отдельно для дальнейшей работы (например, обзвона колл-центра).
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-start gap-2 mt-4">
+            <Sparkles size={14} className="text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-xs text-blue-900">
+              <div className="font-semibold mb-0.5">
+                Расчётный охват: ~{(uploadedFile?.matched || (targetCities.length * targetPartners.length * 312)).toLocaleString('ru')} исполнителей
+              </div>
+              <div className="text-blue-700">Учитываются все активные фильтры. Сегментированный показ снижает нагрузку на ленту и повышает CTR.</div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Schedule */}
+        <Card title="Авто-снятие сторис" icon={<Calendar size={16} />}>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+              <div>
+                <div className="text-sm font-medium text-slate-800">Авто-снятие по времени</div>
+                <div className="text-xs text-slate-500">Сторис снимется в указанную дату/время</div>
+              </div>
+              <Toggle on={autoDeactivate} onChange={setAutoDeactivate} />
+            </div>
+            {autoDeactivate && (
+              <input
+                type="datetime-local"
+                value={autoDeactivateDate}
+                onChange={e => setAutoDeactivateDate(e.target.value)}
+                className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+              />
+            )}
+
+            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+              <div>
+                <div className="text-sm font-medium text-slate-800">Снимать при «битой» ссылке</div>
+                <div className="text-xs text-slate-500">Если ссылка перестала отвечать — сторис снимется + придёт уведомление</div>
+              </div>
+              <Toggle on={autoDeactivateOnBrokenLink} onChange={setAutoDeactivateOnBrokenLink} />
+            </div>
+          </div>
+        </Card>
+
+        {/* Co-payment from РР */}
+        <Card title="Доплата от платформы РР" icon={<CircleDollarSign size={16} />} action={<Toggle on={hasCopay} onChange={setHasCopay} />}>
+          {hasCopay && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[11px] text-slate-600 font-medium block mb-1">Ставка клиента</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={copay.clientRate}
+                      onChange={e => setCopay({ ...copay, clientRate: +e.target.value })}
+                      className="w-full pl-3 pr-7 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm tabular-nums"
+                    />
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-400">₽</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-600 font-medium block mb-1">Доплата от РР</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={copay.bonus}
+                      onChange={e => setCopay({ ...copay, bonus: +e.target.value })}
+                      className="w-full pl-3 pr-7 py-2 bg-emerald-50 border border-emerald-200 rounded-md text-sm tabular-nums text-emerald-800 font-semibold"
+                    />
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-emerald-500">₽</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-600 font-medium block mb-1">Итого исполнителю</label>
+                  <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-md text-sm font-bold text-blue-800 tabular-nums">
+                    {(copay.clientRate + copay.bonus).toLocaleString('ru')} ₽
+                  </div>
+                </div>
+              </div>
+
+              <Field label="Подпись над суммой (видна в сторис)">
+                <input
+                  value={copay.text}
+                  onChange={e => setCopay({ ...copay, text: e.target.value })}
+                  placeholder="Например: Доплата сразу на карту"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm"
+                />
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                  {['Доплата сразу на карту', 'Бонус +500₽ от РР', 'Подняли ставку для вас', 'Акция мая · +20%'].map(t => (
+                    <button
+                      key={t}
+                      onClick={() => setCopay({ ...copay, text: t })}
+                      className="px-2 py-0.5 text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-600 rounded transition"
+                    >{t}</button>
+                  ))}
+                </div>
+              </Field>
+
+              <div className="text-[11px] text-slate-500 bg-slate-50 rounded p-2.5 leading-snug">
+                💡 В сторис показывается строкой <b>«{copay.clientRate}&nbsp;₽ + {copay.bonus}&nbsp;₽ от РР»</b> на тёмной плашке — заметно, но не кричит. Используется для коммуникации спецпредложений без обещаний от имени клиента.
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* Reactions — customizable */}
+        <Card title="Реакции (эмодзи)" icon={<Smile size={16} />} action={<Toggle on={reactionsEnabled} onChange={setReactionsEnabled} />}>
+          {reactionsEnabled && (
+            <div className="space-y-3">
+              <div className="text-xs text-slate-600">
+                Под сторис исполнитель сможет нажать на одну из этих реакций. Выберите от 1 до 4 эмодзи.
+              </div>
+              <div>
+                <div className="text-[11px] text-slate-500 mb-2">Выбрано: {customReactions.length}/4</div>
+                <div className="grid grid-cols-6 sm:grid-cols-12 gap-1.5">
+                  {allReactions.map(e => (
+                    <button
+                      key={e}
+                      onClick={() => toggleReaction(e)}
+                      className={`text-2xl p-2 rounded-lg border-2 transition ${
+                        customReactions.includes(e)
+                          ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-200'
+                          : 'border-transparent bg-slate-50 hover:bg-slate-100 opacity-60 hover:opacity-100'
+                      }`}
+                    >{e}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="text-[11px] text-slate-500 bg-slate-50 rounded p-2 flex items-center gap-2">
+                <Sparkles size={11} className="text-blue-500" />
+                <span>Сводка реакций — во вкладке «Аналитика». Видно, кто конкретно поставил реакцию (см. таблицу «Подробно по исполнителям»).</span>
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* Urgency marking */}
+        <Card title="Выделение сторис" icon={<Zap size={16} />} action={<Toggle on={isUrgent} onChange={setIsUrgent} />}>
+          {isUrgent ? (
+            <div className="space-y-3">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2.5">
+                <Zap size={16} className="text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <div className="text-sm font-bold text-red-800 mb-0.5">Срочная сторис</div>
+                  <div className="text-xs text-red-700 leading-snug">
+                    Кружочек получит пульсирующий красный обод и метку «Срочно». Всегда показывается первым в ряду. На иконке появится молния.
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 text-center">
+                {[
+                  { icon: '🔴', t: 'Пульсирующий красный обод', d: 'Анимация привлекает взгляд' },
+                  { icon: '⚡', t: 'Метка «Срочно» под кружком', d: 'Текстовый маркер' },
+                  { icon: '📌', t: 'Первая позиция в ряду', d: 'Независимо от времени публикации' }
+                ].map((f, i) => (
+                  <div key={i} className="bg-red-50 border border-red-100 rounded-lg p-2">
+                    <div className="text-xl mb-1">{f.icon}</div>
+                    <div className="text-[10px] font-semibold text-slate-800">{f.t}</div>
+                    <div className="text-[10px] text-slate-500 mt-0.5">{f.d}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="text-[11px] text-slate-500 bg-slate-50 rounded p-2.5">
+                После истечения срока (по таймеру авто-деактивации) метка «Срочно» снимается автоматически — кружочек тухнет в режим обычного просмотренного.
+              </div>
+            </div>
+          ) : (
+            <div className="text-xs text-slate-500">
+              Обычная сторис показывается в стандартном порядке, без анимации. Включите, если нужно срочно привлечь внимание — горящие вакансии, дедлайны, важные изменения.
+            </div>
+          )}
+        </Card>
+
+        {/* A/B test — with thumbnails */}
+        <Card title="A/B-тест" icon={<Layers size={16} />} action={<Toggle on={abTest} onChange={setAbTest} />}>
+          {abTest ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                {/* Variant A */}
+                <button
+                  onClick={() => setAbVariant('A')}
+                  className={`text-left rounded-xl border-2 transition overflow-hidden ${
+                    abVariant === 'A' ? 'border-blue-500 ring-2 ring-blue-200' : 'border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <div className={`${coverColor} aspect-[16/9] relative flex items-end p-2`}>
+                    <div className="text-white text-[10px] font-bold leading-tight line-clamp-2 drop-shadow">{title || 'Без заголовка'}</div>
+                    <div className="absolute top-1.5 left-1.5 bg-white/95 rounded-full px-2 py-0.5 text-[10px] font-bold text-slate-800">A</div>
+                    {abVariant === 'A' && (
+                      <div className="absolute top-1.5 right-1.5 bg-blue-600 rounded-full px-2 py-0.5 text-[9px] font-bold text-white uppercase tracking-wider">Редактирую</div>
+                    )}
+                  </div>
+                  <div className="p-2 bg-white">
+                    <div className="text-[11px] font-semibold text-slate-700">Текущая версия</div>
+                    <div className="text-[10px] text-slate-500">Контент из формы выше</div>
+                  </div>
+                </button>
+
+                {/* Variant B */}
+                <button
+                  onClick={() => { setAbVariant('B'); showToast('Переключились на редактирование варианта B'); }}
+                  className={`text-left rounded-xl border-2 transition overflow-hidden ${
+                    abVariant === 'B' ? 'border-blue-500 ring-2 ring-blue-200' : 'border-dashed border-slate-300 hover:border-blue-400'
+                  }`}
+                >
+                  <div className={`${coverColorB} aspect-[16/9] relative flex items-end p-2`}>
+                    <div className="text-white text-[10px] font-bold leading-tight line-clamp-2 drop-shadow">Срочные смены — х2 для опытных</div>
+                    <div className="absolute top-1.5 left-1.5 bg-white/95 rounded-full px-2 py-0.5 text-[10px] font-bold text-slate-800">B</div>
+                    {abVariant === 'B' && (
+                      <div className="absolute top-1.5 right-1.5 bg-blue-600 rounded-full px-2 py-0.5 text-[9px] font-bold text-white uppercase tracking-wider">Редактирую</div>
+                    )}
+                  </div>
+                  <div className="p-2 bg-white">
+                    <div className="text-[11px] font-semibold text-slate-700">Альтернатива</div>
+                    <div className="text-[10px] text-slate-500">Другая обложка и заголовок</div>
+                  </div>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-slate-50 rounded-lg p-2.5">
+                  <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-0.5">Сплит</div>
+                  <div className="text-sm font-bold text-slate-800">50 / 50</div>
+                </div>
+                <div className="bg-slate-50 rounded-lg p-2.5">
+                  <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-0.5">Длительность</div>
+                  <div className="text-sm font-bold text-slate-800">24 часа</div>
+                </div>
+                <div className="bg-slate-50 rounded-lg p-2.5">
+                  <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-0.5">Метрика</div>
+                  <div className="text-sm font-bold text-slate-800">CTR</div>
+                </div>
+              </div>
+
+              <div className="text-[11px] text-slate-500 bg-slate-50 rounded-lg p-2.5">
+                💡 Аудитория делится 50/50. Через 24 часа автоматически остаётся вариант с лучшим CTR. Слева — превью каждого варианта, кликните на B чтобы переключить редактор.
+              </div>
+            </div>
+          ) : (
+            <div className="text-xs text-slate-500">
+              Опубликовать 2 версии параллельно и автоматически оставить ту, у которой выше конверсия.
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {/* Preview column moved to the top — see beginning of EditorView */}
+    </div>
+  );
+}
+
+// ============ Analytics Tab ============
+function AnalyticsView() {
+  const [selectedStory, setSelectedStory] = useState('Срочные смены в Москве — х1.5');
+  const [storyContentType, setStoryContentType] = useState('video'); // 'video' | 'image'
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Story selector */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-end gap-3 flex-wrap">
+          <div>
+            <div className="text-xs text-slate-500 mb-1">Сторис</div>
+            <select
+              value={selectedStory}
+              onChange={e => setSelectedStory(e.target.value)}
+              className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/30 min-w-[280px]"
+            >
+              {storyList.filter(s => s.status !== 'draft').map(s => <option key={s.id}>{s.title}</option>)}
+            </select>
+          </div>
+          {/* Demo: content-type toggle (in production this is set by story metadata) */}
+          <div>
+            <div className="text-xs text-slate-500 mb-1">Тип контента <span className="text-slate-400 normal-case">(демо)</span></div>
+            <div className="inline-flex bg-slate-100 p-0.5 rounded-lg">
+              <button
+                onClick={() => setStoryContentType('video')}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5 ${
+                  storyContentType === 'video' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <Video size={12} /> Видео
+              </button>
+              <button
+                onClick={() => setStoryContentType('image')}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5 ${
+                  storyContentType === 'image' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <ImageIcon size={12} /> Фото
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-1.5">
+            <Filter size={13} /> Период: 7 дней
+          </button>
+          <button className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-1.5">
+            <Download size={13} /> Экспорт CSV
+          </button>
+        </div>
+      </div>
+
+      {/* KPI cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <KPICard label="Просмотры" value="284 510" delta={12.4} icon={<Eye size={16} />} color="blue" />
+        <KPICard label="Клики по ссылкам" value="38 960" delta={8.1} icon={<MousePointerClick size={16} />} color="violet" />
+        <KPICard label="Записи" value="6 893" delta={15.7} icon={<UserCheck size={16} />} color="emerald" />
+        <KPICard label="Вышли на смену" value="5 175" delta={-2.3} icon={<CheckCircle2 size={16} />} color="amber" />
+        <KPICard label="Конверсия V→Запись" value="2.4%" delta={3.4} icon={<TrendingUp size={16} />} color="rose" />
+      </div>
+
+      {/* Funnel */}
+      <Card title="Воронка: от просмотра до выхода на смену" icon={<Layers size={16} />}>
+        <div className="space-y-2">
+          {[
+            { l: 'Просмотры', v: 284510, w: 100, c: 'bg-blue-500' },
+            { l: 'Клики по ссылке', v: 38960, w: 13.7, c: 'bg-violet-500' },
+            { l: 'Записались', v: 6893, w: 2.4, c: 'bg-emerald-500' },
+            { l: 'Вышли на смену', v: 5175, w: 1.8, c: 'bg-amber-500' }
+          ].map((s, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <div className="w-32 text-xs text-slate-600 font-medium flex-shrink-0">{s.l}</div>
+              <div className="flex-1 bg-slate-100 rounded-lg overflow-hidden h-9">
+                <div
+                  className={`${s.c} h-full rounded-lg flex items-center pl-3 transition-all`}
+                  style={{ width: `${Math.max(s.w, 12)}%` }}
+                >
+                  <span className="text-white text-xs font-bold tabular-nums whitespace-nowrap">{s.v.toLocaleString('ru')}</span>
+                </div>
+              </div>
+              <div className="w-14 text-right text-sm font-semibold text-slate-700 tabular-nums flex-shrink-0">{s.w}%</div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        {/* Drop-off curve — only for video stories */}
+        {storyContentType === 'video' ? (
+          <Card title="Кривая досмотра (drop-off)" icon={<TrendingUp size={16} />}>
+            <div className="text-xs text-slate-600 mb-3">
+              Сколько исполнителей оставалось в видео в каждую секунду. Резкий спад → улучшить этот момент.
+            </div>
+            <ResponsiveContainer width="100%" height={180}>
+              <AreaChart data={[
+                { t: '0с', v: 100 }, { t: '3с', v: 92 }, { t: '6с', v: 84 },
+                { t: '9с', v: 71 }, { t: '12с', v: 63 }, { t: '20с', v: 52 },
+                { t: '30с', v: 48 }, { t: '45с', v: 45 }
+              ]} margin={{ left: -20, right: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                <XAxis dataKey="t" fontSize={10} stroke="#94A3B8" />
+                <YAxis fontSize={10} stroke="#94A3B8" unit="%" />
+                <Tooltip formatter={v => [`${v}%`, 'Осталось']} contentStyle={{ borderRadius: 8, fontSize: 11 }} />
+                <Area type="monotone" dataKey="v" stroke="#1976D2" fill="#EFF6FF" strokeWidth={2} />
+                <ReferenceLine x="6с" stroke="#F97316" strokeDasharray="4 2" label={{ value: '▼ пик отсева', position: 'insideTopLeft', fontSize: 10, fill: '#F97316' }} />
+              </AreaChart>
+            </ResponsiveContainer>
+            <div className="grid grid-cols-3 gap-2 mt-2">
+              {[
+                { l: 'Досмотрели', v: '45%' },
+                { l: 'Пик отсева', v: '6-9с', warn: true },
+                { l: 'Replay', v: '12%' }
+              ].map(m => (
+                <div key={m.l} className={`rounded-lg p-2 text-center ${m.warn ? 'bg-amber-50 border border-amber-100' : 'bg-slate-50'}`}>
+                  <div className={`text-[10px] ${m.warn ? 'text-amber-600' : 'text-slate-500'} uppercase`}>{m.l}</div>
+                  <div className={`text-base font-bold ${m.warn ? 'text-amber-700' : 'text-slate-800'}`}>{m.v}</div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        ) : (
+          <Card title="Время на сторис" icon={<Clock size={16} />}>
+            <div className="text-xs text-slate-600 mb-3">
+              Для фото-сторис кривая досмотра неприменима — нет таймлайна. Вместо неё показываем медиану времени просмотра.
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="rounded-lg p-3 text-center bg-blue-50 border border-blue-100">
+                <div className="text-[10px] text-blue-600 uppercase">Медиана просмотра</div>
+                <div className="text-2xl font-bold text-blue-800 tabular-nums">4.2с</div>
+              </div>
+              <div className="rounded-lg p-3 text-center bg-emerald-50 border border-emerald-100">
+                <div className="text-[10px] text-emerald-600 uppercase">Долго смотрели (>5с)</div>
+                <div className="text-2xl font-bold text-emerald-800 tabular-nums">38%</div>
+              </div>
+              <div className="rounded-lg p-3 text-center bg-amber-50 border border-amber-100">
+                <div className="text-[10px] text-amber-600 uppercase">Свайпнули мгновенно</div>
+                <div className="text-2xl font-bold text-amber-700 tabular-nums">17%</div>
+              </div>
+            </div>
+            <div className="mt-3 bg-slate-50 border border-slate-100 rounded-lg p-2.5 text-[11px] text-slate-600 flex items-start gap-2">
+              <ImageIcon size={13} className="text-slate-400 flex-shrink-0 mt-0.5" />
+              <span>Эта сторис — фото. Кривая досмотра по секундам собирается только для видео.</span>
+            </div>
+          </Card>
+        )}
+
+        {/* Time-of-day heatmap */}
+        <Card title="Лучшее время публикации" icon={<Clock size={16} />}>
+          <div className="text-xs text-slate-600 mb-3">CTR по часу и дню. Темнее = лучше конверсия.</div>
+          <table className="w-full text-[10px]">
+            <thead>
+              <tr>
+                <th className="text-left text-slate-500 font-medium pb-1.5 w-8"></th>
+                {['7:00','10:00','13:00','16:00','19:00','21:00'].map(h => (
+                  <th key={h} className="text-center text-slate-500 font-medium pb-1.5 px-0.5">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { d: 'Пн', v: [6, 10, 9, 12, 17, 11] },
+                { d: 'Вт', v: [7, 11, 10, 13, 18, 12] },
+                { d: 'Ср', v: [6, 10, 9, 14, 19, 13] },
+                { d: 'Чт', v: [7, 11, 10, 13, 20, 14] },
+                { d: 'Пт', v: [8, 12, 11, 12, 22, 15] },
+                { d: 'Сб', v: [10, 13, 12, 10, 15, 10] },
+                { d: 'Вс', v: [9, 11, 10, 9, 13, 9] }
+              ].map(row => (
+                <tr key={row.d}>
+                  <td className="text-slate-600 font-semibold pr-1 py-0.5">{row.d}</td>
+                  {row.v.map((val, i) => {
+                    const intensity = val / 22;
+                    const bg = `rgba(25,118,210,${0.07 + intensity * 0.9})`;
+                    const tc = intensity > 0.5 ? 'white' : '#475569';
+                    return (
+                      <td key={i} className="px-0.5 py-0.5">
+                        <div className="rounded text-center font-bold py-1.5 tabular-nums" style={{ background: bg, color: tc }}>{val}%</div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="mt-2 text-[11px] text-blue-700 bg-blue-50 border border-blue-100 rounded-lg p-2">
+            🏆 Пятница 19:00 — CTR 22%, лучшее окно для срочных сторис
+          </div>
+        </Card>
+
+        {/* Cities */}
+        <Card
+          title="Просмотры и записи по городам"
+          icon={<MapPin size={16} />}
+          action={
+            <div className="flex items-center gap-2 text-[11px]">
+              <span className="text-slate-500">Объединять с областью</span>
+              <Toggle on={true} onChange={() => {}} />
+            </div>
+          }
+        >
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={cityData.map(c => ({ ...c, totalViews: c.views + c.region }))} layout="vertical" margin={{ left: 0, right: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" horizontal={false} />
+              <XAxis type="number" stroke="#94A3B8" fontSize={11} />
+              <YAxis dataKey="name" type="category" stroke="#64748B" fontSize={11} width={110} />
+              <Tooltip
+                content={({ active, payload }) => {
+                  if (!active || !payload || !payload.length) return null;
+                  const d = payload[0].payload;
+                  return (
+                    <div className="bg-white border border-slate-200 rounded-lg shadow-lg p-3 text-xs">
+                      <div className="font-bold text-slate-800 mb-1.5">{d.name} <span className="text-slate-400 font-normal">+ {d.regionName}</span></div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between gap-4">
+                          <span className="text-slate-600">Город:</span>
+                          <span className="font-semibold tabular-nums">{d.views.toLocaleString('ru')}</span>
+                        </div>
+                        <div className="flex justify-between gap-4">
+                          <span className="text-slate-600">Область:</span>
+                          <span className="font-semibold tabular-nums text-slate-500">{d.region.toLocaleString('ru')}</span>
+                        </div>
+                        <div className="flex justify-between gap-4 pt-1 border-t border-slate-100">
+                          <span className="text-slate-700 font-semibold">Всего:</span>
+                          <span className="font-bold tabular-nums text-blue-700">{(d.views + d.region).toLocaleString('ru')}</span>
+                        </div>
+                        <div className="flex justify-between gap-4 mt-1.5">
+                          <span className="text-emerald-700">Записей:</span>
+                          <span className="font-semibold tabular-nums text-emerald-700">{d.bookings}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }}
+              />
+              <Bar dataKey="views" fill="#1976D2" name="Город" stackId="city" radius={[0, 0, 0, 0]} />
+              <Bar dataKey="region" fill="#90CAF9" name="Область" stackId="city" radius={[0, 4, 4, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+          <div className="text-[11px] text-slate-500 mt-1 flex items-center gap-2">
+            <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-blue-600 rounded-sm" /> Город</div>
+            <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-blue-300 rounded-sm" /> Область (наведите на столбец — раскладка)</div>
+          </div>
+        </Card>
+
+        {/* Time series */}
+        <Card title="Динамика по дням" icon={<TrendingUp size={16} />}>
+          <ResponsiveContainer width="100%" height={260}>
+            <AreaChart data={timeSeriesData}>
+              <defs>
+                <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#1976D2" stopOpacity={0.4} />
+                  <stop offset="100%" stopColor="#1976D2" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#7E57C2" stopOpacity={0.4} />
+                  <stop offset="100%" stopColor="#7E57C2" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+              <XAxis dataKey="day" stroke="#94A3B8" fontSize={11} />
+              <YAxis stroke="#94A3B8" fontSize={11} />
+              <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 12 }} />
+              <Area type="monotone" dataKey="views" stroke="#1976D2" fill="url(#g1)" strokeWidth={2} name="Просмотры" />
+              <Area type="monotone" dataKey="clicks" stroke="#7E57C2" fill="url(#g2)" strokeWidth={2} name="Клики" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </Card>
+
+        {/* Poll results */}
+        <Card
+          title="Результаты опроса «Откуда узнали»"
+          icon={<BarChart3 size={16} />}
+          action={
+            <button
+              onClick={() => alert('Экспортирую CSV с полями: дата, город, категория, стаж, кол-во смен, ответ, ID пользователя')}
+              className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+            >
+              <Download size={13} /> Excel
+            </button>
+          }
+        >
+          <div className="space-y-2.5">
+            {pollResults.map((p, i) => (
+              <div key={i}>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-slate-700">{p.option}</span>
+                  <span className="text-slate-500 font-semibold">{p.votes} ({p.pct}%)</span>
+                </div>
+                <div className="bg-slate-100 rounded-full h-2 overflow-hidden">
+                  <div className="h-full rounded-full transition-all" style={{ width: `${p.pct}%`, background: COLORS[i % COLORS.length] }} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 flex items-center justify-between text-xs">
+            <span className="text-slate-500">Всего ответов: <b>1 157</b> · Конверсия в ответ: <b>9.2%</b></span>
+            <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full text-[11px] font-medium">Защита от накруток вкл.</span>
+          </div>
+        </Card>
+
+        {/* Reactions summary */}
+        <Card title="Реакции и вовлечение" icon={<Smile size={16} />}>
+          <div className="grid grid-cols-3 gap-3 mb-3">
+            {[
+              { e: '❤️', c: 1842, l: 'нравится' },
+              { e: '🔥', c: 924, l: 'огонь' },
+              { e: '👍', c: 612, l: 'согласен' }
+            ].map(r => (
+              <div key={r.e} className="bg-slate-50 rounded-lg p-3 text-center">
+                <div className="text-3xl mb-1">{r.e}</div>
+                <div className="text-lg font-bold tabular-nums">{r.c.toLocaleString('ru')}</div>
+                <div className="text-[11px] text-slate-500">{r.l}</div>
+              </div>
+            ))}
+          </div>
+          <div className="text-xs text-slate-500">
+            Реакции — самый лёгкий способ для исполнителя дать обратную связь. Высокий ❤️ = контент попал в боль, высокий 🔥 = акция «зашла».
+          </div>
+        </Card>
+      </div>
+
+      {/* Comparison */}
+      <Card title="Сравнение всех сторис" icon={<Layers size={16} />}>
+        <div className="overflow-x-auto -mx-4">
+          <table className="w-full text-sm min-w-[640px]">
+            <thead>
+              <tr className="text-xs text-slate-500 uppercase tracking-wider">
+                <th className="text-left font-medium px-4 py-2">Сторис</th>
+                <th className="text-right font-medium px-4 py-2">Просмотры</th>
+                <th className="text-right font-medium px-4 py-2">CTR</th>
+                <th className="text-right font-medium px-4 py-2">Записи</th>
+                <th className="text-right font-medium px-4 py-2">Стоимость записи</th>
+                <th className="text-right font-medium px-4 py-2">ROI</th>
+              </tr>
+            </thead>
+            <tbody className="text-sm">
+              {[
+                { t: 'Срочные смены в Москве — х1.5', v: 8420, ctr: 14.2, b: 312, cost: 84, roi: 4.8 },
+                { t: 'Реферальная программа +500₽', v: 6510, ctr: 18.7, b: 198, cost: 62, roi: 6.1 },
+                { t: 'Откуда вы о нас узнали?', v: 12180, ctr: 0, b: 0, cost: 0, roi: 0 },
+                { t: 'Инструкция по выходу на смену', v: 21340, ctr: 8.1, b: 145, cost: 110, roi: 2.4 }
+              ].map((r, i) => (
+                <tr key={i} className="border-t border-slate-100 hover:bg-slate-50">
+                  <td className="px-4 py-2.5 font-medium text-slate-800">{r.t}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums">{r.v.toLocaleString('ru')}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums">{r.ctr ? `${r.ctr}%` : '—'}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums">{r.b || '—'}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums">{r.cost ? `${r.cost} ₽` : '—'}</td>
+                  <td className="px-4 py-2.5 text-right">
+                    {r.roi ? (
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
+                        r.roi > 4 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                      }`}>×{r.roi}</span>
+                    ) : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* Individual users tracking */}
+      <UsersTable />
+    </div>
+  );
+}
+
+// ============ Individual users analytics ============
+function UsersTable() {
+  const [filter, setFilter] = useState('all'); // all | voted | seen_no_vote | not_seen | reacted
+  const [search, setSearch] = useState('');
+
+  const sampleUsers = [
+    { id: 10042, fio: 'Петров А.С.', phone: '+7 916 234-12-89', city: 'Москва', cat: 'Курьер', shifts: 47, rating: 9.6, seen: true, viewTime: 8.2, voted: true, answer: 'Через друзей', reaction: '🔥', date: '03.05 14:22' },
+    { id: 10043, fio: 'Иванов М.Д.', phone: '+7 925 117-04-22', city: 'Москва', cat: 'Склад', shifts: 12, rating: 9.0, seen: true, viewTime: 4.5, voted: false, answer: '', reaction: '', date: '03.05 14:48' },
+    { id: 10044, fio: 'Сидорова К.В.', phone: '+7 999 882-65-13', city: 'Краснодар', cat: 'Уборка', shifts: 89, rating: 9.8, seen: true, viewTime: 11.1, voted: true, answer: 'Реклама ВК', reaction: '❤️', date: '03.05 15:03' },
+    { id: 10045, fio: 'Кузнецов И.А.', phone: '+7 905 443-21-00', city: 'СПб', cat: 'Стройка', shifts: 3, rating: 8.4, seen: true, viewTime: 2.1, voted: false, answer: '', reaction: '', date: '03.05 15:10' },
+    { id: 10046, fio: 'Лебедев Р.П.', phone: '+7 911 765-43-21', city: 'СПб', cat: 'Курьер', shifts: 124, rating: 10.0, seen: true, viewTime: 9.8, voted: true, answer: 'Через друзей', reaction: '👍', date: '03.05 15:34' },
+    { id: 10047, fio: 'Морозов В.Е.', phone: '+7 967 112-33-44', city: 'Москва', cat: 'Производство', shifts: 28, rating: 9.2, seen: false, viewTime: 0, voted: false, answer: '', reaction: '', date: '—' },
+    { id: 10048, fio: 'Алексеев Д.К.', phone: '+7 903 998-12-77', city: 'Краснодар', cat: 'Склад', shifts: 67, rating: 9.4, seen: true, viewTime: 6.3, voted: false, answer: '', reaction: '🔥', date: '03.05 16:01' },
+    { id: 10049, fio: 'Соколова Н.Ю.', phone: '+7 962 334-22-11', city: 'Екатеринбург', cat: 'Уборка', shifts: 41, rating: 9.6, seen: true, viewTime: 7.7, voted: true, answer: 'Telegram-каналы', reaction: '', date: '04.05 09:15' },
+    { id: 10050, fio: 'Никитин С.А.', phone: '+7 985 222-43-87', city: 'Москва', cat: 'Курьер', shifts: 8, rating: 8.6, seen: true, viewTime: 3.4, voted: false, answer: '', reaction: '', date: '04.05 10:22' },
+    { id: 10051, fio: 'Волкова Е.И.', phone: '+7 926 100-99-88', city: 'Казань', cat: 'Склад', shifts: 56, rating: 9.8, seen: true, viewTime: 10.2, voted: true, answer: 'Поиск в интернете', reaction: '❤️', date: '04.05 11:48' }
+  ];
+
+  let filtered = sampleUsers;
+  if (filter === 'voted') filtered = filtered.filter(u => u.voted);
+  if (filter === 'seen_no_vote') filtered = filtered.filter(u => u.seen && !u.voted);
+  if (filter === 'not_seen') filtered = filtered.filter(u => !u.seen);
+  if (filter === 'reacted') filtered = filtered.filter(u => u.reaction);
+  if (search) filtered = filtered.filter(u =>
+    u.fio.toLowerCase().includes(search.toLowerCase()) ||
+    u.phone.includes(search) ||
+    String(u.id).includes(search)
+  );
+
+  const counts = {
+    all: sampleUsers.length,
+    voted: sampleUsers.filter(u => u.voted).length,
+    seen_no_vote: sampleUsers.filter(u => u.seen && !u.voted).length,
+    not_seen: sampleUsers.filter(u => !u.seen).length,
+    reacted: sampleUsers.filter(u => u.reaction).length
+  };
+
+  const filters = [
+    { v: 'all', l: 'Все', c: counts.all, color: 'slate' },
+    { v: 'voted', l: 'Прошли опрос', c: counts.voted, color: 'emerald' },
+    { v: 'seen_no_vote', l: 'Увидели, не ответили', c: counts.seen_no_vote, color: 'amber' },
+    { v: 'not_seen', l: 'Не увидели', c: counts.not_seen, color: 'rose' },
+    { v: 'reacted', l: 'Поставили реакцию', c: counts.reacted, color: 'violet' }
+  ];
+
+  return (
+    <Card
+      title="Подробно по исполнителям"
+      icon={<Users size={16} />}
+      action={
+        <button
+          onClick={() => alert('Скачивается poll_export_example.xlsx — содержит 5 листов: Сводка, Все исполнители, Ответили, Увидели но не ответили, Не увидели')}
+          className="px-3 py-1.5 bg-emerald-600 text-white rounded-md text-xs font-semibold hover:bg-emerald-700 flex items-center gap-1.5"
+        >
+          <Download size={12} /> Excel-выгрузка
+        </button>
+      }
+    >
+      {/* Filter chips */}
+      <div className="flex flex-wrap gap-2 mb-3">
+        {filters.map(f => (
+          <button
+            key={f.v}
+            onClick={() => setFilter(f.v)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition flex items-center gap-1.5 ${
+              filter === f.v
+                ? 'bg-slate-900 border-slate-900 text-white'
+                : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+            }`}
+          >
+            {f.l}
+            <span className={`px-1.5 rounded-full text-[10px] font-bold tabular-nums ${
+              filter === f.v ? 'bg-white/20' : 'bg-slate-100'
+            }`}>{f.c}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Search */}
+      <div className="relative mb-3">
+        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Поиск по ФИО, телефону или ID..."
+          className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+        />
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto -mx-5">
+        <table className="w-full text-sm min-w-[900px]">
+          <thead>
+            <tr className="text-[11px] text-slate-500 uppercase tracking-wider bg-slate-50">
+              <th className="text-left font-medium px-3 py-2">ID</th>
+              <th className="text-left font-medium px-3 py-2">ФИО</th>
+              <th className="text-left font-medium px-3 py-2">Телефон</th>
+              <th className="text-left font-medium px-3 py-2">Город</th>
+              <th className="text-right font-medium px-3 py-2">Смен</th>
+              <th className="text-right font-medium px-3 py-2">★</th>
+              <th className="text-center font-medium px-3 py-2">Просмотр</th>
+              <th className="text-left font-medium px-3 py-2">Статус</th>
+              <th className="text-left font-medium px-3 py-2">Ответ</th>
+              <th className="text-center font-medium px-3 py-2">Реакция</th>
+              <th className="text-left font-medium px-3 py-2">Время</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map(u => (
+              <tr key={u.id} className="border-t border-slate-100 hover:bg-slate-50/50">
+                <td className="px-3 py-2 text-slate-500 tabular-nums">{u.id}</td>
+                <td className="px-3 py-2 font-medium text-slate-800">{u.fio}</td>
+                <td className="px-3 py-2 text-slate-600 tabular-nums">{u.phone}</td>
+                <td className="px-3 py-2 text-slate-600">{u.city}</td>
+                <td className="px-3 py-2 text-right tabular-nums text-slate-600">{u.shifts}</td>
+                <td className="px-3 py-2 text-right tabular-nums text-slate-600 flex items-center justify-end gap-0.5">
+                  <Star size={11} className="text-amber-500 fill-amber-500" />{u.rating}
+                </td>
+                <td className="px-3 py-2 text-center">
+                  {u.seen ? (
+                    <span className="text-xs text-emerald-700">✓ {u.viewTime}с</span>
+                  ) : (
+                    <span className="text-xs text-slate-300">—</span>
+                  )}
+                </td>
+              <td className="px-3 py-2">
+                  {u.voted ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-100 text-emerald-700">Прошёл опрос</span>
+                  ) : u.seen ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-100 text-amber-700">Не ответил</span>
+                  ) : (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500">Не увидел</span>
+                  )}
+                </td>
+                <td className="px-3 py-2 text-xs">
+                  {u.answer
+                    ? <span className="inline-flex items-center gap-1 bg-blue-50 border border-blue-100 text-blue-800 px-2 py-0.5 rounded-md font-medium max-w-[140px] truncate" title={u.answer}>
+                        💬 {u.answer}
+                      </span>
+                    : <span className="text-slate-300">—</span>
+                  }
+                </td>
+                <td className="px-3 py-2 text-center text-base">{u.reaction || <span className="text-slate-300 text-xs">—</span>}</td>
+                <td className="px-3 py-2 text-xs text-slate-500 tabular-nums">{u.date}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
+          <UserX size={16} className="text-amber-700 flex-shrink-0 mt-0.5" />
+          <div>
+            <div className="text-xs font-bold text-amber-900 mb-0.5">«Увидели, не ответили» — главный сегмент для маркетинга</div>
+            <div className="text-[11px] text-amber-800 leading-snug">
+              Эти исполнители уже в воронке, но не дошли до целевого действия. Можно сделать ретаргет push-уведомлением, повторной сторис или ручным обзвоном.
+            </div>
+          </div>
+        </div>
+        <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-start gap-2">
+          <FileSpreadsheet size={16} className="text-blue-700 flex-shrink-0 mt-0.5" />
+          <div>
+            <div className="text-xs font-bold text-blue-900 mb-0.5">Excel-выгрузка</div>
+            <div className="text-[11px] text-blue-800 leading-snug">
+              Все 4 сегмента (ответили / не ответили / не увидели / реакции) — отдельными листами, со сводкой и формулами. Готова для CRM, обзвона или Excel-аналитики.
+            </div>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+// ============ List Tab ============
+function ListView({ showToast }) {
+  const [search, setSearch] = useState('');
+  const [storyOrder, setStoryOrder] = useState([1, 2, 3, 4, 5, 6]); // story IDs in display order
+
+  const statusMeta = {
+    active: { l: 'Активна', c: 'bg-emerald-100 text-emerald-700' },
+    scheduled: { l: 'Запланирована', c: 'bg-blue-100 text-blue-700' },
+    archived: { l: 'В архиве', c: 'bg-slate-100 text-slate-600' },
+    draft: { l: 'Черновик', c: 'bg-amber-100 text-amber-700' }
+  };
+
+  const activeStories = storyList.filter(s => s.status === 'active' || s.status === 'scheduled');
+  const orderedActive = storyOrder
+    .map(id => activeStories.find(s => s.id === id))
+    .filter(Boolean);
+
+  const moveUp = (id) => {
+    const idx = storyOrder.indexOf(id);
+    if (idx <= 0) return;
+    const newOrder = [...storyOrder];
+    [newOrder[idx - 1], newOrder[idx]] = [newOrder[idx], newOrder[idx - 1]];
+    setStoryOrder(newOrder);
+    showToast('Порядок обновлён');
+  };
+  const moveDown = (id) => {
+    const idx = storyOrder.indexOf(id);
+    if (idx >= storyOrder.length - 1) return;
+    const newOrder = [...storyOrder];
+    [newOrder[idx], newOrder[idx + 1]] = [newOrder[idx + 1], newOrder[idx]];
+    setStoryOrder(newOrder);
+    showToast('Порядок обновлён');
+  };
+  const pinFirst = (id) => {
+    setStoryOrder([id, ...storyOrder.filter(x => x !== id)]);
+    showToast('Сторис закреплена первой');
+  };
+
+  const filtered = storyList.filter(s => s.title.toLowerCase().includes(search.toLowerCase()));
+
+  // Mock: story 1 is urgent, story 2 is viewed (faded), others normal
+  const circleState = (s) => {
+    if (s.id === 1) return 'urgent';
+    if (s.id === 2 || s.id === 3) return 'viewed';
+    return 'normal';
+  };
+
+  return (
+    <div className="p-4 sm:p-6 space-y-5">
+
+      {/* Circle row preview — "as seen on phone home screen" */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-slate-700">
+            <Smartphone size={14} className="text-slate-400" />
+            <span className="font-semibold text-sm">Ряд кружочков в приложении (ручное управление)</span>
+          </div>
+          <span className="text-[11px] text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">Так выглядит на главном экране</span>
+        </div>
+        <div className="px-5 py-4 bg-slate-900">
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {orderedActive.map((s, idx) => {
+              const state = circleState(s);
+              return (
+                <div key={s.id} className="flex flex-col items-center flex-shrink-0 group relative">
+                  <div className={`relative rounded-full p-[2.5px] transition-all ${
+                    state === 'urgent'
+                      ? 'bg-gradient-to-br from-red-500 to-orange-500'
+                      : state === 'viewed'
+                      ? 'bg-slate-600'
+                      : 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                  } ${state === 'viewed' ? 'opacity-50' : ''}`}
+                    style={state === 'urgent' ? { animation: 'urgentPulse 1.5s infinite' } : {}}>
+                    <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-slate-900">
+                      <div className={`w-full h-full ${s.cover} ${state === 'viewed' ? 'grayscale' : ''}`} />
+                    </div>
+                    {state === 'urgent' && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full border-2 border-slate-900 flex items-center justify-center">
+                        <Zap size={9} className="text-white" />
+                      </div>
+                    )}
+                    {state === 'viewed' && (
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-slate-500 rounded-full border-2 border-slate-900 flex items-center justify-center">
+                        <Check size={8} className="text-white" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/20 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <span className="text-white text-[10px] font-bold">#{idx + 1}</span>
+                    </div>
+                  </div>
+                  <div className={`text-[9px] mt-1 w-16 text-center truncate ${state === 'viewed' ? 'text-slate-500' : 'text-slate-200'}`}>
+                    {state === 'urgent' ? '🔥 Срочно' : s.title.slice(0, 12) + '…'}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-3 flex items-center gap-4 text-[10px]">
+            <div className="flex items-center gap-1.5 text-slate-400"><span className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-red-500 to-orange-500" /> Срочная (пульсирует)</div>
+            <div className="flex items-center gap-1.5 text-slate-400 opacity-50"><span className="w-2.5 h-2.5 rounded-full bg-slate-600" /> Просмотрена (угасшая)</div>
+            <div className="flex items-center gap-1.5 text-slate-400"><span className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600" /> Обычная активная</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Order management */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-slate-700">
+            <GripVertical size={14} className="text-slate-400" />
+            <span className="font-semibold text-sm">Управление порядком</span>
+          </div>
+          <div className="text-[11px] text-slate-500">Стрелки — ручная перестановка · Закрепить — всегда первым</div>
+        </div>
+        <div className="divide-y divide-slate-100">
+          {orderedActive.map((s, idx) => {
+            const state = circleState(s);
+            return (
+              <div key={s.id} className={`flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition ${state === 'viewed' ? 'opacity-60' : ''}`}>
+                <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-xs font-bold flex items-center justify-center flex-shrink-0">{idx + 1}</span>
+                <div className={`w-8 h-11 rounded-md ${s.cover} flex-shrink-0 relative`}>
+                  {state === 'urgent' && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                      <Zap size={8} className="text-white" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-slate-800 truncate">{s.title}</div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium ${statusMeta[s.status].c}`}>
+                      {statusMeta[s.status].l}
+                    </span>
+                    {state === 'urgent' && <span className="text-[10px] font-bold text-red-600 flex items-center gap-0.5"><Zap size={9} />Срочная</span>}
+                    {state === 'viewed' && <span className="text-[10px] text-slate-400">Угасшая (просмотрена {Math.floor(Math.random() * 80 + 70)}%)</span>}
+                    <span className="text-[10px] text-slate-500">{s.city}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <button
+                    onClick={() => pinFirst(s.id)}
+                    title="Закрепить первым"
+                    className="p-1.5 rounded hover:bg-blue-100 text-slate-400 hover:text-blue-600 transition"
+                  >
+                    <Star size={13} />
+                  </button>
+                  <button
+                    onClick={() => moveUp(s.id)}
+                    disabled={idx === 0}
+                    className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700 disabled:opacity-30 transition"
+                  >
+                    <ChevronRight size={14} className="rotate-[-90deg]" />
+                  </button>
+                  <button
+                    onClick={() => moveDown(s.id)}
+                    disabled={idx >= orderedActive.length - 1}
+                    className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700 disabled:opacity-30 transition"
+                  >
+                    <ChevronRight size={14} className="rotate-90" />
+                  </button>
+                  <div className="w-px h-5 bg-slate-200 mx-1" />
+                  <IconBtn icon={<Edit3 size={13} />} onClick={() => showToast(`Редактирование: ${s.title}`)} />
+                  <IconBtn icon={<Copy size={13} />} onClick={() => showToast('Сторис продублирована')} />
+                  <IconBtn icon={<Archive size={13} />} onClick={() => showToast('Перенесено в архив')} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Full story list (all statuses) */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex-1 min-w-[200px] relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Поиск по названию..."
+            className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+          />
+        </div>
+        {['Все', 'Активные', 'Запланированные', 'Черновики', 'Архив'].map((f, i) => (
+          <button
+            key={i}
+            className={`px-3 py-2 rounded-lg text-xs font-medium transition ${
+              i === 0 ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
+          >{f}</button>
+        ))}
+      </div>
+
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[720px]">
+            <thead className="bg-slate-50">
+              <tr className="text-xs text-slate-500 uppercase tracking-wider">
+                <th className="text-left font-medium px-4 py-3">Сторис</th>
+                <th className="text-left font-medium px-4 py-3">Статус</th>
+                <th className="text-left font-medium px-4 py-3">Город</th>
+                <th className="text-right font-medium px-4 py-3">Просмотры</th>
+                <th className="text-right font-medium px-4 py-3">CTR</th>
+                <th className="px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(s => (
+                <tr key={s.id} className={`border-t border-slate-100 hover:bg-slate-50/50 ${s.status === 'archived' ? 'opacity-60' : ''}`}>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-12 rounded-md ${s.cover} flex-shrink-0 relative`}>
+                        {s.id === 1 && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                            <Zap size={8} className="text-white" />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <span className="font-medium text-slate-800 block">{s.title}</span>
+                        {s.id === 1 && <span className="text-[10px] font-bold text-red-600 flex items-center gap-0.5"><Zap size={9} />Срочная</span>}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusMeta[s.status].c}`}>
+                      {statusMeta[s.status].l}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">{s.city}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{s.views.toLocaleString('ru')}</td>
+                  <td className="px-4 py-3 text-right">{s.ctr}</td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex justify-end gap-1">
+                      <IconBtn icon={<Edit3 size={14} />} onClick={() => showToast(`Редактирование: ${s.title}`)} />
+                      <IconBtn icon={<Copy size={14} />} onClick={() => showToast('Сторис продублирована')} />
+                      <IconBtn icon={<Archive size={14} />} onClick={() => showToast('Перенесено в архив')} />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ Templates Tab ============
+function TemplatesView({ showToast }) {
+  const [activeCategory, setActiveCategory] = useState('all');
+
+  const categories = [
+    { v: 'all', l: 'Все', count: 9 },
+    { v: 'urgent', l: 'Срочные смены', count: 2, icon: '🔥' },
+    { v: 'polls', l: 'Опросы', count: 2, icon: '📊' },
+    { v: 'promo', l: 'Акции', count: 3, icon: '🎁' },
+    { v: 'onboarding', l: 'Онбординг', count: 2, icon: '📚' }
+  ];
+
+  const templates = [
+    {
+      id: 1, cat: 'urgent', name: 'Срочные смены — повышенная ставка',
+      desc: 'Горящие вакансии с доплатой от РР. Кнопка записи.',
+      cover: 'bg-gradient-to-br from-orange-500 to-red-600', icon: '🔥',
+      title: 'Срочно нужны люди в Москве!',
+      body: 'У ВкусВилла на складе в Хамовниках есть смены сегодня и завтра. Ставка 2500 ₽ + 500 ₽ от РР. Нажми «Записаться».',
+      hasContact: true, hasPoll: false, hasCopay: true,
+      uses: 47
+    },
+    {
+      id: 2, cat: 'urgent', name: 'Завтрашние смены (за день)',
+      desc: 'За сутки до даты — список открытых смен',
+      cover: 'bg-gradient-to-br from-amber-500 to-orange-600', icon: '⏰',
+      title: 'Смены на завтра',
+      body: 'Завтра у партнёров 12 открытых смен. Ставки от 2200 ₽. Локации в описании.',
+      hasContact: true, hasPoll: false, hasCopay: false,
+      uses: 31
+    },
+    {
+      id: 3, cat: 'polls', name: 'Опрос: «Откуда узнали»',
+      desc: 'CustDev. 5 вариантов + «другое»',
+      cover: 'bg-gradient-to-br from-violet-500 to-purple-600', icon: '📊',
+      title: 'Откуда вы о нас узнали?',
+      body: 'Помогите нам стать лучше — это займёт 5 секунд. Одно нажатие.',
+      hasContact: false, hasPoll: true, hasCopay: false,
+      uses: 18
+    },
+    {
+      id: 4, cat: 'polls', name: 'Опрос NPS',
+      desc: 'Готовы ли рекомендовать РР друзьям',
+      cover: 'bg-gradient-to-br from-pink-500 to-rose-600', icon: '⭐',
+      title: 'Оцените нас',
+      body: 'Готовы посоветовать РР друзьям? Один тап — и нам понятно, что улучшать.',
+      hasContact: false, hasPoll: true, hasCopay: false,
+      uses: 12
+    },
+    {
+      id: 5, cat: 'promo', name: 'Реферальная программа',
+      desc: 'Приведи друга — +2000 ₽',
+      cover: 'bg-gradient-to-br from-emerald-500 to-teal-600', icon: '🎁',
+      title: 'Приведи друга — получи 2000 ₽',
+      body: 'Поделись приложением с друзьями. За каждого, кто выполнит первую смену, начислим 2000 ₽ на карту.',
+      hasContact: false, hasPoll: false, hasCopay: false,
+      uses: 24
+    },
+    {
+      id: 6, cat: 'promo', name: 'Бонус за серию смен',
+      desc: 'Геймификация для активных',
+      cover: 'bg-gradient-to-br from-fuchsia-500 to-pink-600', icon: '🏆',
+      title: '5 смен — бонус 1000 ₽',
+      body: 'Сделайте 5 смен на этой неделе — получите 1000 ₽ бонусом сверху.',
+      hasContact: false, hasPoll: false, hasCopay: true,
+      uses: 19
+    },
+    {
+      id: 7, cat: 'promo', name: 'Возврат «спящих»',
+      desc: 'Для тех, кто не выходил 30+ дней',
+      cover: 'bg-gradient-to-br from-cyan-500 to-blue-600', icon: '👋',
+      title: 'Соскучились по сменам?',
+      body: 'У наших партнёров есть смены со ставкой от 2500 ₽ + бонус 300 ₽ за возврат к работе.',
+      hasContact: true, hasPoll: false, hasCopay: true,
+      uses: 8
+    },
+    {
+      id: 8, cat: 'onboarding', name: 'Первая смена — инструкция',
+      desc: 'Для новичков — что делать в день смены',
+      cover: 'bg-gradient-to-br from-blue-500 to-indigo-600', icon: '📚',
+      title: 'Как пройдёт ваша первая смена',
+      body: 'Подойдите за 15 минут до начала. Возьмите паспорт. Менеджер встретит у входа и покажет, что делать.',
+      hasContact: true, hasPoll: false, hasCopay: false,
+      uses: 56
+    },
+    {
+      id: 9, cat: 'onboarding', name: 'Что взять с собой',
+      desc: 'Чек-лист перед сменой',
+      cover: 'bg-gradient-to-br from-slate-600 to-slate-800', icon: '✅',
+      title: 'Чек-лист на смену',
+      body: 'Паспорт, СНИЛС, ИНН, рабочая обувь, удобная одежда. Зарядка для телефона — на всякий случай.',
+      hasContact: false, hasPoll: false, hasCopay: false,
+      uses: 41
+    }
+  ];
+
+  const filtered = activeCategory === 'all' ? templates : templates.filter(t => t.cat === activeCategory);
+
+  return (
+    <div className="p-4 sm:p-6 space-y-5">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="text-lg font-bold text-slate-800">Шаблоны сторис</h3>
+          <p className="text-sm text-slate-500">Готовые конструкции — заголовки, описания, кнопки. Загружаются в редактор одним кликом, дальше правите под себя.</p>
+        </div>
+        <button
+          onClick={() => showToast('Откроется окно загрузки .json или сохранения текущей сторис как шаблона')}
+          className="px-3 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-blue-700 transition"
+        >
+          <Upload size={14} /> Загрузить свой шаблон
+        </button>
+      </div>
+
+      {/* Categories */}
+      <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+        {categories.map(c => (
+          <button
+            key={c.v}
+            onClick={() => setActiveCategory(c.v)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition flex items-center gap-1.5 ${
+              activeCategory === c.v
+                ? 'bg-slate-900 border-slate-900 text-white'
+                : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+            }`}
+          >
+            {c.icon && <span>{c.icon}</span>}{c.l}
+            <span className={`px-1.5 rounded-full text-[10px] font-bold tabular-nums ${
+              activeCategory === c.v ? 'bg-white/20' : 'bg-slate-100'
+            }`}>{c.count}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Template grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filtered.map(t => (
+          <div
+            key={t.id}
+            className="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg hover:border-blue-300 transition flex flex-col"
+          >
+            {/* Mini phone-style preview */}
+            <div className={`${t.cover} aspect-[4/5] relative flex flex-col p-3 overflow-hidden`}>
+              {/* Top row: РР badge + icon */}
+              <div className="flex items-start justify-between gap-2 mb-auto">
+                <div className="flex items-center gap-1 flex-shrink min-w-0">
+                  <div className="w-5 h-5 rounded-full bg-white/95 flex items-center justify-center text-[9px] font-bold text-slate-700 flex-shrink-0">РР</div>
+                  <div className="text-white text-[10px] font-medium drop-shadow truncate">Рабочие руки</div>
+                </div>
+                <div className="text-2xl flex-shrink-0 leading-none">{t.icon}</div>
+              </div>
+              {/* Bottom: title + badges */}
+              <div className="space-y-1.5">
+                <div className="text-white text-xs font-bold leading-tight drop-shadow line-clamp-2">{t.title}</div>
+                {(t.hasContact || t.hasPoll || t.hasCopay) && (
+                  <div className="flex gap-1 flex-wrap">
+                    {t.hasContact && <span className="text-[9px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full">📞 связаться</span>}
+                    {t.hasPoll && <span className="text-[9px] bg-violet-500 text-white px-1.5 py-0.5 rounded-full">📊 опрос</span>}
+                    {t.hasCopay && <span className="text-[9px] bg-amber-500 text-white px-1.5 py-0.5 rounded-full">💰 доплата</span>}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Body preview */}
+            <div className="p-3 flex-1 flex flex-col">
+              <div className="text-sm font-semibold text-slate-800 mb-1">{t.name}</div>
+              <div className="text-[11px] text-slate-500 mb-2 leading-snug">{t.desc}</div>
+              <div className="text-[11px] bg-slate-50 rounded-md p-2 leading-relaxed text-slate-700 flex-1">
+                {t.body}
+              </div>
+              <div className="flex items-center justify-between mt-3">
+                <div className="text-[10px] text-slate-400">Использовали {t.uses} раз</div>
+                <button
+                  onClick={() => showToast(`Шаблон «${t.name}» загружен в редактор. Все поля заполнены — отредактируйте под себя.`)}
+                  className="px-3 py-1 text-xs font-semibold text-blue-600 bg-blue-50 rounded-md hover:bg-blue-600 hover:text-white transition"
+                >
+                  Использовать
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* Add template */}
+        <div
+          onClick={() => showToast('Можно сохранить текущую сторис как шаблон или загрузить .json файл')}
+          className="cursor-pointer bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border-2 border-dashed border-slate-300 hover:border-blue-400 hover:from-blue-50 hover:to-indigo-50 transition flex flex-col items-center justify-center p-6 text-slate-500 hover:text-blue-600 min-h-[280px]"
+        >
+          <ImagePlus size={32} className="mb-2" />
+          <div className="font-semibold text-sm">Создать свой шаблон</div>
+          <div className="text-xs text-center mt-1 leading-snug">Загрузите .json или сохраните текущую сторис как шаблон</div>
+        </div>
+      </div>
+
+      {/* How it works */}
+      <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+        <div className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-2">
+          <Sparkles size={14} /> Как работают шаблоны
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-blue-800">
+          <div>
+            <div className="font-semibold mb-0.5">1. Выбираете шаблон</div>
+            <div className="text-blue-700">Все поля — заголовок, описание, кнопки, опрос — заполняются автоматически</div>
+          </div>
+          <div>
+            <div className="font-semibold mb-0.5">2. Правите под себя</div>
+            <div className="text-blue-700">Меняете текст, добавляете картинку, настраиваете таргетинг</div>
+          </div>
+          <div>
+            <div className="font-semibold mb-0.5">3. Публикуете</div>
+            <div className="text-blue-700">Сторис уходит в приложение исполнителям, попадающим под таргетинг</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ Reusable components ============
+function Card({ title, icon, action, children }) {
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-slate-700">
+          <span className="text-slate-400">{icon}</span>
+          <span className="font-semibold text-sm">{title}</span>
+        </div>
+        {action}
+      </div>
+      <div className="p-5">{children}</div>
+    </div>
+  );
+}
+
+function Field({ label, hint, children }) {
+  return (
+    <div className="mb-4 last:mb-0">
+      <div className="flex justify-between items-center mb-1.5">
+        <label className="text-xs font-medium text-slate-600">{label}</label>
+        {hint && <span className="text-[11px] text-slate-400">{hint}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Toggle({ on, onChange }) {
+  return (
+    <button
+      onClick={() => onChange(!on)}
+      className={`relative w-10 h-6 rounded-full transition ${on ? 'bg-blue-600' : 'bg-slate-300'}`}
+    >
+      <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition shadow ${on ? 'left-[18px]' : 'left-0.5'}`} />
+    </button>
+  );
+}
+
+function KPICard({ label, value, delta, icon, color }) {
+  const colors = {
+    blue: 'bg-blue-50 text-blue-600',
+    violet: 'bg-violet-50 text-violet-600',
+    emerald: 'bg-emerald-50 text-emerald-600',
+    amber: 'bg-amber-50 text-amber-600',
+    rose: 'bg-rose-50 text-rose-600'
+  };
+  const positive = delta > 0;
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-4">
+      <div className="flex items-center justify-between mb-2">
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${colors[color]}`}>{icon}</div>
+        <div className={`text-xs font-semibold flex items-center gap-0.5 ${positive ? 'text-emerald-600' : 'text-rose-600'}`}>
+          {positive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+          {Math.abs(delta)}%
+        </div>
+      </div>
+      <div className="text-2xl font-bold text-slate-800 tabular-nums">{value}</div>
+      <div className="text-xs text-slate-500 mt-0.5">{label}</div>
+    </div>
+  );
+}
+
+function IconBtn({ icon, onClick }) {
+  return (
+    <button onClick={onClick} className="p-1.5 rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition">
+      {icon}
+    </button>
+  );
+}
+
+// ============ Root ============
+// ============ Notifications & Settings panels ============
+function NotificationsPanel({ onClose }) {
+  const items = [
+    { id: 1, type: 'success', icon: <CheckCircle2 size={14} className="text-emerald-600" />, title: '5 новых записей через сторис', body: '«Срочные смены в Москве — х1.5» — за последний час', time: '12 мин назад', unread: true },
+    { id: 2, type: 'info', icon: <BarChart3 size={14} className="text-violet-600" />, title: 'Опрос собрал 100 ответов', body: '«Откуда вы о нас узнали?» — пора смотреть результаты', time: '1ч назад', unread: true },
+    { id: 3, type: 'warning', icon: <AlertTriangle size={14} className="text-amber-600" />, title: 'Битая ссылка снята автоматически', body: 'Сторис «Реферальная программа» переведена в архив — 2 ссылки 404', time: '3ч назад', unread: true },
+    { id: 4, type: 'info', icon: <UserPlus size={14} className="text-blue-600" />, title: 'Анна Соколова опубликовала сторис', body: '«Бонус за выходные смены» — охват ~3200', time: 'вчера', unread: false },
+    { id: 5, type: 'success', icon: <Sparkles size={14} className="text-blue-600" />, title: 'A/B-тест завершён — победил вариант B', body: 'CTR 18.7% против 14.2%. Применили автоматически.', time: 'вчера', unread: false }
+  ];
+  return (
+    <div className="absolute right-0 top-full mt-2 w-[360px] bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden text-slate-800">
+      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div className="font-bold text-sm flex items-center gap-2">
+          <Bell size={14} /> Уведомления
+          <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 rounded-full">3</span>
+        </div>
+        <button onClick={onClose} className="p-1 hover:bg-slate-200 rounded text-slate-400">
+          <X size={14} />
+        </button>
+      </div>
+      <div className="max-h-[400px] overflow-y-auto">
+        {items.map(it => (
+          <div
+            key={it.id}
+            className={`px-4 py-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition ${it.unread ? 'bg-blue-50/30' : ''}`}
+          >
+            <div className="flex items-start gap-2.5">
+              <div className="mt-0.5">{it.icon}</div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-semibold text-slate-800 leading-snug flex items-start gap-2">
+                  {it.title}
+                  {it.unread && <span className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0 mt-1" />}
+                </div>
+                <div className="text-[11px] text-slate-500 mt-0.5 leading-snug">{it.body}</div>
+                <div className="text-[10px] text-slate-400 mt-1">{it.time}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="px-4 py-2 border-t border-slate-100 flex justify-between items-center bg-slate-50">
+        <button className="text-[11px] text-slate-600 hover:text-slate-800 font-medium">Отметить всё прочитанным</button>
+        <button className="text-[11px] text-blue-600 hover:text-blue-700 font-semibold">Все уведомления →</button>
+      </div>
+    </div>
+  );
+}
+
+function SettingsPanel({ onClose }) {
+  const sections = [
+    {
+      title: 'Уведомления',
+      icon: <Bell size={14} className="text-blue-600" />,
+      items: [
+        { l: 'Push в браузер', d: 'Когда сторис собирает >100 записей или >100 ответов', toggle: true, on: true },
+        { l: 'Email-сводки', d: 'Еженедельный отчёт по понедельникам в 09:00', toggle: true, on: true },
+        { l: 'Telegram-бот @rabochie_ruki_mkt_bot', d: 'Подключён к каналу маркетинга', toggle: true, on: true },
+        { l: 'Slack #marketing', d: 'Не подключён', toggle: true, on: false }
+      ]
+    },
+    {
+      title: 'Часовой пояс',
+      icon: <Globe size={14} className="text-emerald-600" />,
+      items: [
+        { l: 'Москва (UTC+3)', d: 'Используется во всех расписаниях и аналитике', value: 'Изменить' }
+      ]
+    },
+    {
+      title: 'Бренд',
+      icon: <Sparkles size={14} className="text-violet-600" />,
+      items: [
+        { l: 'Логотип в превью', d: 'Загружен — РР (синий)', value: 'Заменить' },
+        { l: 'Корпоративный синий', d: '#1976D2 — используется в кнопках', value: 'Изменить' },
+        { l: 'Шрифт', d: 'Системный (по умолчанию)', value: 'Изменить' }
+      ]
+    },
+    {
+      title: 'Интеграции',
+      icon: <Boxes size={14} className="text-amber-600" />,
+      items: [
+        { l: 'Подключение к ERP', d: 'Активно · база исполнителей и партнёров', status: 'ok' },
+        { l: 'Push-сервис (FCM/APNs)', d: 'Активно · доставка ~96%', status: 'ok' },
+        { l: 'Звонки колл-центра', d: 'Не подключён · для обзвона невалидных номеров из загрузок', status: 'off' }
+      ]
+    },
+    {
+      title: 'Доступы и роли',
+      icon: <Users size={14} className="text-rose-600" />,
+      items: [
+        { l: 'Маркетологи (5)', d: 'Создание и публикация сторис', value: 'Управлять' },
+        { l: 'Контент-редакторы (2)', d: 'Только черновики, без публикации', value: 'Управлять' },
+        { l: 'Аналитики (3)', d: 'Только просмотр отчётов', value: 'Управлять' }
+      ]
+    },
+    {
+      title: 'API ключи',
+      icon: <Code size={14} className="text-slate-600" />,
+      items: [
+        { l: 'Ключ для интеграции с ERP', d: 'Создан 12.04.2026 · последняя активность 7 минут назад', value: 'Скрыть' }
+      ]
+    }
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/50 z-50 flex items-start justify-center p-4 overflow-y-auto" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full my-8 overflow-hidden text-slate-800"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
+          <div className="flex items-center gap-2.5">
+            <Settings size={18} className="text-slate-700" />
+            <div>
+              <div className="font-bold text-base">Настройки</div>
+              <div className="text-xs text-slate-500">Конфигурация рабочего пространства · Мария Куликова</div>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+          {sections.map((s, si) => (
+            <div key={si}>
+              <div className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                {s.icon}{s.title}
+              </div>
+              <div className="bg-slate-50 rounded-lg divide-y divide-slate-200">
+                {s.items.map((it, ii) => (
+                  <div key={ii} className="px-3 py-2.5 flex items-center justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-slate-800">{it.l}</div>
+                      <div className="text-[11px] text-slate-500">{it.d}</div>
+                    </div>
+                    {it.toggle ? (
+                      <Toggle on={it.on} onChange={() => {}} />
+                    ) : it.status ? (
+                      <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${
+                        it.status === 'ok' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'
+                      }`}>{it.status === 'ok' ? '● Работает' : '○ Выключено'}</span>
+                    ) : (
+                      <button className="text-xs font-semibold text-blue-600 hover:text-blue-700 px-2 py-1 hover:bg-blue-50 rounded">{it.value}</button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="px-6 py-3 border-t border-slate-200 flex justify-end gap-2 bg-slate-50">
+          <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800">Отмена</button>
+          <button onClick={onClose} className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700">Сохранить изменения</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function StoriesAdmin() {
+  const [activeTab, setActiveTab] = useState('editor');
+  const [toast, setToast] = useState('');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 3000);
+  };
+
+  const tabs = [
+    { id: 'editor', label: 'Редактор', icon: <Edit3 size={15} /> },
+    { id: 'list', label: 'Все сторис', icon: <Layers size={15} /> },
+    { id: 'analytics', label: 'Аналитика', icon: <BarChart3 size={15} /> },
+    { id: 'templates', label: 'Шаблоны', icon: <Sparkles size={15} /> }
+  ];
+
+  return (
+    <div className="min-h-screen bg-slate-50" style={{ fontFamily: 'ui-sans-serif, system-ui, -apple-system, sans-serif' }}>
+      {/* Header */}
+      <header className="bg-gradient-to-r from-blue-800 to-blue-900 text-white relative">
+        <div className="px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-white/15 backdrop-blur rounded-lg flex items-center justify-center font-bold text-sm">РР</div>
+            <div>
+              <div className="font-bold text-sm leading-none">Рабочие руки · ERP</div>
+              <div className="text-[11px] text-blue-200 mt-0.5">Управление сторис</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 relative">
+            <div className="relative">
+              <button
+                onClick={() => { setShowNotifications(!showNotifications); setShowSettings(false); }}
+                className={`p-2 rounded-lg transition relative ${showNotifications ? 'bg-white/20' : 'hover:bg-white/10'}`}
+                title="Уведомления"
+              >
+                <Bell size={16} />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-blue-800" />
+              </button>
+              {showNotifications && <NotificationsPanel onClose={() => setShowNotifications(false)} />}
+            </div>
+            <button
+              onClick={() => { setShowSettings(true); setShowNotifications(false); }}
+              className="p-2 hover:bg-white/10 rounded-lg transition"
+              title="Настройки"
+            >
+              <Settings size={16} />
+            </button>
+            <div className="w-8 h-8 bg-white/15 rounded-full flex items-center justify-center text-xs font-semibold" title="Мария Куликова, маркетолог">МК</div>
+          </div>
+        </div>
+        {/* Tabs */}
+        <div className="px-6 flex gap-1 overflow-x-auto">
+          {tabs.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id)}
+              className={`px-4 py-2.5 text-sm font-medium flex items-center gap-2 whitespace-nowrap border-b-2 transition ${
+                activeTab === t.id
+                  ? 'border-white text-white'
+                  : 'border-transparent text-blue-200 hover:text-white'
+              }`}
+            >
+              {t.icon}{t.label}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      {/* Editor toolbar */}
+      {activeTab === 'editor' && (
+        <div className="bg-white border-b border-slate-200 px-6 py-3">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-2 text-sm flex-wrap">
+              <span className="text-slate-500">Сторисы /</span>
+              <span className="font-semibold text-slate-800">Срочные смены в Москве — оплата х1.5</span>
+              <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">Черновик</span>
+              <span className="text-slate-400 text-xs">· Изменено 5 минут назад</span>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <button onClick={() => showToast('Открыта история версий')} className="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-1.5">
+                <History size={14} /> История версий
+              </button>
+              <button onClick={() => showToast('Сторис продублирована')} className="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-1.5">
+                <Copy size={14} /> Дублировать
+              </button>
+              <button onClick={() => showToast('Сохранено в черновики')} className="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-1.5">
+                <Save size={14} /> Черновик
+              </button>
+              <button onClick={() => showToast('Сторис опубликована — охват ~1850 исполнителей')} className="px-4 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center gap-1.5 shadow-sm">
+                <Zap size={14} /> Опубликовать
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Content */}
+      <main className="max-w-[1400px] mx-auto">
+        {activeTab === 'editor' && <EditorView showToast={showToast} />}
+        {activeTab === 'list' && <ListView showToast={showToast} />}
+        {activeTab === 'analytics' && <AnalyticsView />}
+        {activeTab === 'templates' && <TemplatesView showToast={showToast} />}
+      </main>
+
+      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
+
+      <Toast message={toast} onClose={() => setToast('')} />
+    </div>
+  );
+}

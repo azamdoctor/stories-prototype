@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Сторисы · Редактор — Рабочие руки CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.5.0/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #fafafa;
+    color: #212121;
+    font-size: 14px;
+    min-width: 1400px;
+  }
+
+  /* TOP HEADER */
+  .crm-header {
+    background: #1e3a5f; color: #fff; height: 52px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; position: sticky; top: 0; z-index: 50;
+  }
+  .crm-header .left { display: flex; align-items: center; gap: 14px; }
+  .crm-header .right { display: flex; align-items: center; gap: 24px; font-size: 13px; opacity: 0.95; }
+  .crm-header .ti { font-size: 22px; opacity: 0.85; }
+  .badge-counter {
+    position: absolute; top: -6px; right: -10px;
+    background: #dc2626; color: #fff;
+    font-size: 11px; font-weight: 500;
+    padding: 2px 6px; border-radius: 99px;
+  }
+
+  .layout { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 52px); }
+
+  /* SIDEBAR */
+  .sidebar { background: #fff; border-right: 1px solid #e5e7eb; padding: 14px 0; font-size: 14px; color: #475569; }
+  .user-block { display: flex; gap: 12px; padding: 0 14px 14px; border-bottom: 1px solid #f1f5f9; align-items: flex-start; }
+  .user-avatar { width: 48px; height: 48px; border-radius: 8px; background: #1976d2; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 500; flex-shrink: 0; }
+  .nav-item { padding: 7px 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+  .nav-item:hover { background: #f8fafc; }
+  .nav-item .label { display: flex; align-items: center; gap: 10px; }
+  .nav-item .ti { font-size: 18px; }
+  .nav-item.active-section { color: #1976d2; font-weight: 500; }
+  .sub-item { padding: 6px 14px 6px 44px; color: #64748b; cursor: pointer; font-size: 14px; }
+  .sub-item:hover { background: #f8fafc; }
+  .sub-item.active { background: #e3f2fd; color: #1976d2; font-weight: 500; border-left: 3px solid #1976d2; padding-left: 41px; }
+  .support-block { margin-top: 24px; padding: 12px 14px; border-top: 1px solid #f1f5f9; font-size: 12px; color: #64748b; }
+  .support-block .title { color: #0f172a; font-weight: 500; margin-bottom: 4px; }
+  .support-block a { color: #1976d2; text-decoration: none; }
+
+  .main { display: flex; flex-direction: column; min-width: 0; }
+
+  /* TABS */
+  .section-tabs {
+    background: #fff; border-bottom: 1px solid #e5e7eb;
+    padding: 0 24px; display: flex; gap: 4px;
+    height: 48px; align-items: flex-end;
+  }
+  .tab {
+    padding: 12px 18px; font-size: 14px; color: #64748b;
+    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    border-bottom: 3px solid transparent;
+    transition: color .15s, border-color .15s; user-select: none;
+  }
+  .tab:hover { color: #334155; }
+  .tab.active { color: #1976d2; font-weight: 500; border-bottom-color: #1976d2; }
+  .tab .ti { font-size: 16px; }
+
+  /* TOOLBAR (editor only — без статистики, только хлебная крошка и публикация) */
+  .toolbar { background: #fff; border-bottom: 1px solid #e5e7eb; padding: 16px 24px; }
+  .toolbar-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .breadcrumb { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .breadcrumb .crumb-light { color: #64748b; font-size: 14px; }
+  .breadcrumb .title { font-size: 19px; font-weight: 500; }
+  .draft-badge { background: #fef3c7; color: #92400e; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 500; }
+  .breadcrumb .meta { color: #94a3b8; font-size: 12px; }
+
+  .actions { display: flex; gap: 8px; }
+  .btn {
+    padding: 8px 14px; border: 1px solid #cbd5e1; background: #fff;
+    border-radius: 6px; font-size: 13px; color: #334155;
+    display: inline-flex; align-items: center; gap: 6px;
+    cursor: pointer; font-family: inherit; transition: background .15s;
+  }
+  .btn:hover { background: #f8fafc; }
+  .btn .ti { font-size: 15px; }
+  .btn.btn-primary { border: none; background: #1976d2; color: #fff; font-weight: 500; padding: 8px 18px; }
+  .btn.btn-primary:hover { background: #1565c0; }
+
+  /* EDITOR SPLIT */
+  .editor-grid { padding: 20px 24px 32px; display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: flex-start; flex: 1; }
+  .preview-col { position: sticky; top: 116px; }
+  .preview-label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; font-weight: 500; }
+  .preview-mode-toggle { display: flex; gap: 3px; background: #e2e8f0; padding: 3px; border-radius: 8px; margin-bottom: 14px; }
+  .preview-mode-toggle button { flex: 1; padding: 7px; font-size: 13px; background: transparent; border: none; color: #64748b; border-radius: 5px; cursor: pointer; font-family: inherit; }
+  .preview-mode-toggle button.active { background: #fff; color: #0f172a; font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+
+  .phone-frame { background: #0f172a; border-radius: 36px; padding: 8px; max-width: 300px; margin: 0 auto; }
+  .phone-screen { background: #fff; border-radius: 28px; aspect-ratio: 9/19; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+  .story-bg { flex: 1; background: linear-gradient(135deg, #fb923c 0%, #ef4444 50%, #dc2626 100%); position: relative; padding: 16px; }
+  .story-progress { display: flex; gap: 4px; margin-bottom: 14px; }
+  .story-progress .seg { flex: 1; height: 3px; background: rgba(255,255,255,0.4); border-radius: 2px; }
+  .story-progress .seg.filled { background: #fff; }
+  .story-author { display: flex; align-items: center; gap: 8px; color: #fff; font-size: 13px; }
+  .story-avatar { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-weight: 500; }
+  .urgent-badge { position: absolute; top: 56px; right: 16px; background: #fff; color: #dc2626; font-size: 13px; font-weight: 500; padding: 4px 10px; border-radius: 99px; }
+  .story-title { position: absolute; left: 16px; right: 16px; bottom: 152px; color: #fff; font-size: 22px; font-weight: 500; line-height: 1.2; }
+  .story-desc { position: absolute; left: 16px; right: 16px; bottom: 96px; color: rgba(255,255,255,0.95); font-size: 13px; line-height: 1.4; }
+  .story-cta { position: absolute; left: 16px; right: 16px; bottom: 46px; }
+  .story-cta button { width: 100%; background: #fff; color: #0f172a; font-size: 14px; font-weight: 500; padding: 11px; border-radius: 12px; border: none; cursor: pointer; }
+  .story-reactions { position: absolute; left: 16px; bottom: 14px; display: flex; gap: 8px; font-size: 18px; }
+  .preview-hint { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 12px; }
+
+  /* CARDS */
+  .editor-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px 18px; }
+  .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .card-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
+  .card-title .ti { font-size: 17px; color: #1976d2; }
+  .card-count { color: #94a3b8; font-weight: 400; font-size: 12px; }
+
+  .field-label { font-size: 12px; color: #64748b; margin-bottom: 5px; display: flex; justify-content: space-between; }
+  .field-counter { color: #94a3b8; }
+  .text-input, .textarea-input {
+    width: 100%; background: #f8fafc; border: 1px solid #e5e7eb;
+    border-radius: 7px; padding: 10px 12px;
+    font-size: 14px; font-family: inherit; color: #0f172a;
+    outline: none; transition: border-color .15s, box-shadow .15s;
+  }
+  .text-input:focus, .textarea-input:focus { border-color: #1976d2; box-shadow: 0 0 0 3px rgba(25,118,210,0.12); }
+  .textarea-input { min-height: 60px; resize: vertical; line-height: 1.4; }
+
+  .content-row { display: grid; grid-template-columns: 160px 1fr; gap: 20px; }
+  .cover-square { background: linear-gradient(135deg, #fb923c, #dc2626); aspect-ratio: 9/16; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; cursor: pointer; transition: opacity .15s; }
+  .cover-square:hover { opacity: 0.9; }
+  .cover-square .ti { font-size: 26px; }
+  .cover-hint { font-size: 11px; color: #94a3b8; text-align: center; margin-top: 6px; }
+  .file-card { border: 2px solid #86efac; background: #f0fdf4; border-radius: 10px; padding: 12px; display: flex; align-items: center; gap: 12px; }
+  .file-icon { width: 40px; height: 40px; background: #bbf7d0; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .file-icon .ti { font-size: 20px; color: #15803d; }
+  .file-info { flex: 1; min-width: 0; }
+  .file-name { font-size: 14px; font-weight: 500; }
+  .file-meta { font-size: 12px; color: #64748b; margin-top: 1px; }
+  .palette { display: flex; gap: 8px; margin-top: 12px; align-items: center; }
+  .palette-label { font-size: 12px; color: #64748b; margin-right: 4px; }
+  .swatch { width: 28px; height: 28px; border-radius: 6px; cursor: pointer; transition: transform .15s; }
+  .swatch:hover { transform: scale(1.08); }
+  .swatch.active { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1976d2; }
+
+  .card-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .link-row, .contact-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+  .link-row:last-child, .contact-row:last-child { margin-bottom: 0; }
+  .type-pill { background: #dbeafe; color: #1e40af; padding: 4px 9px; border-radius: 5px; font-size: 12px; flex-shrink: 0; }
+  .link-text { flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .icon-btn { background: none; border: none; cursor: pointer; padding: 4px; color: #cbd5e1; transition: color .15s; }
+  .icon-btn:hover { color: #ef4444; }
+  .add-link { font-size: 12px; color: #1976d2; background: none; border: none; font-weight: 500; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 4px; }
+  .contact-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .contact-pill { background: #f1f5f9; padding: 4px 10px; border-radius: 99px; font-size: 12px; color: #334155; }
+
+  .toggle { width: 40px; height: 22px; background: #cbd5e1; border-radius: 99px; position: relative; cursor: pointer; transition: background .15s; flex-shrink: 0; border: none; padding: 0; }
+  .toggle::after { content: ''; position: absolute; left: 2px; top: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: left .15s; box-shadow: 0 1px 2px rgba(0,0,0,0.12); }
+  .toggle.on { background: #1976d2; }
+  .toggle.on::after { left: 20px; }
+
+  .audience-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .audience-tag { background: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 99px; font-size: 12px; }
+  .audience-tag.amber { background: #fef3c7; color: #92400e; }
+  .audience-count { font-size: 13px; color: #1976d2; font-weight: 500; }
+
+  .card-collapsed { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 13px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: border-color .15s; }
+  .card-collapsed:hover { border-color: #cbd5e1; }
+  .card-collapsed-title { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .card-collapsed-title .ti { font-size: 15px; color: #64748b; }
+  .card-collapsed-title .muted { color: #94a3b8; font-size: 13px; }
+
+  .hidden { display: none; }
+
+  /* ANALYTICS */
+  .analytics-wrap { padding: 20px 24px 32px; display: flex; flex-direction: column; gap: 18px; }
+  .analytics-toolbar { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .analytics-toolbar .left-controls { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+  .control-group .control-label { font-size: 11px; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .story-select { padding: 9px 12px; background: #fff; border: 1px solid #e5e7eb; border-radius: 7px; font-size: 13px; font-weight: 500; min-width: 320px; cursor: pointer; font-family: inherit; }
+  .seg-control { display: inline-flex; background: #f1f5f9; padding: 3px; border-radius: 7px; }
+  .seg-control button { padding: 6px 12px; font-size: 12px; color: #64748b; background: transparent; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-family: inherit; }
+  .seg-control button.active { background: #fff; color: #0f172a; font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .kpi-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .kpi-card-head { display: flex; align-items: center; justify-content: space-between; }
+  .kpi-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .kpi-icon .ti { font-size: 16px; }
+  .kpi-icon-blue { background: #dbeafe; color: #1976d2; }
+  .kpi-icon-violet { background: #ede9fe; color: #7c3aed; }
+  .kpi-icon-emerald { background: #d1fae5; color: #059669; }
+  .kpi-icon-amber { background: #fef3c7; color: #d97706; }
+  .kpi-icon-rose { background: #ffe4e6; color: #e11d48; }
+  .kpi-card-label { font-size: 12px; color: #64748b; }
+  .kpi-card-value { font-size: 24px; font-weight: 500; line-height: 1.1; }
+  .kpi-delta { font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 2px; }
+  .kpi-delta.up { color: #059669; }
+  .kpi-delta.down { color: #dc2626; }
+
+  .funnel-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .funnel-row:last-child { margin-bottom: 0; }
+  .funnel-label { width: 140px; font-size: 13px; color: #475569; font-weight: 500; flex-shrink: 0; }
+  .funnel-bar-track { flex: 1; background: #f1f5f9; border-radius: 8px; height: 36px; overflow: hidden; }
+  .funnel-bar { height: 100%; border-radius: 8px; display: flex; align-items: center; padding-left: 12px; color: #fff; font-size: 13px; font-weight: 500; white-space: nowrap; }
+  .funnel-pct { width: 56px; text-align: right; font-size: 14px; font-weight: 500; color: #334155; flex-shrink: 0; }
+
+  .heatmap { width: 100%; font-size: 11px; border-collapse: collapse; }
+  .heatmap th { font-weight: 500; color: #64748b; padding: 4px; text-align: center; }
+  .heatmap td.day-label { color: #475569; font-weight: 500; padding: 4px 8px; text-align: left; width: 36px; }
+  .heatmap td.cell { padding: 2px; }
+  .heatmap td.cell > div { border-radius: 4px; text-align: center; padding: 8px 0; font-weight: 500; }
+  .heatmap-callout { margin-top: 10px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 8px 12px; border-radius: 6px; font-size: 12px; }
+
+  .charts-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .poll-row { margin-bottom: 12px; }
+  .poll-row:last-child { margin-bottom: 0; }
+  .poll-row-head { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
+  .poll-row-head .opt { color: #334155; }
+  .poll-row-head .stats { color: #64748b; font-weight: 500; }
+  .poll-bar-track { background: #f1f5f9; border-radius: 99px; height: 8px; overflow: hidden; }
+  .poll-bar { height: 100%; border-radius: 99px; transition: width .3s; }
+  .poll-summary { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 12px; }
+  .poll-summary .left { color: #64748b; }
+  .poll-summary .right { background: #d1fae5; color: #065f46; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 500; }
+
+  .reactions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
+  .reaction-card { background: #f8fafc; border-radius: 10px; padding: 14px; text-align: center; }
+  .reaction-emoji { font-size: 36px; margin-bottom: 4px; }
+  .reaction-count { font-size: 22px; font-weight: 500; }
+  .reaction-label { font-size: 12px; color: #64748b; }
+
+  .comp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .comp-table thead th { text-align: left; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; padding: 8px 14px; border-bottom: 1px solid #e5e7eb; }
+  .comp-table thead th.right { text-align: right; }
+  .comp-table tbody td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; }
+  .comp-table tbody td.right { text-align: right; font-variant-numeric: tabular-nums; }
+  .comp-table tbody td.title { font-weight: 500; color: #0f172a; }
+  .comp-table tbody tr:hover { background: #f8fafc; }
+  .roi-pill { display: inline-flex; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 500; }
+  .roi-pill.high { background: #d1fae5; color: #065f46; }
+  .roi-pill.mid { background: #fef3c7; color: #92400e; }
+
+  .filter-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .filter-chip { padding: 7px 14px; border: 1px solid #e5e7eb; background: #fff; border-radius: 99px; font-size: 13px; color: #475569; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-family: inherit; transition: all .15s; }
+  .filter-chip:hover { border-color: #cbd5e1; }
+  .filter-chip.active { background: #0f172a; border-color: #0f172a; color: #fff; }
+  .filter-chip-count { background: #f1f5f9; padding: 0 7px; border-radius: 99px; font-size: 11px; font-weight: 500; }
+  .filter-chip.active .filter-chip-count { background: rgba(255,255,255,0.18); color: #fff; }
+
+  .search-input-wrap { position: relative; margin-bottom: 14px; }
+  .search-input-wrap .ti { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; color: #94a3b8; }
+  .search-input { width: 100%; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 7px; padding: 9px 12px 9px 38px; font-size: 13px; font-family: inherit; color: #0f172a; outline: none; }
+  .search-input:focus { border-color: #1976d2; box-shadow: 0 0 0 3px rgba(25,118,210,0.12); }
+
+  .users-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .users-table thead th { background: #f8fafc; text-align: left; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; padding: 8px 12px; }
+  .users-table thead th.right { text-align: right; }
+  .users-table thead th.center { text-align: center; }
+  .users-table tbody td { padding: 10px 12px; border-top: 1px solid #f1f5f9; font-variant-numeric: tabular-nums; }
+  .users-table tbody td.right { text-align: right; }
+  .users-table tbody td.center { text-align: center; }
+  .users-table tbody tr:hover { background: #f8fafc; }
+  .user-id { color: #94a3b8; }
+  .user-fio { font-weight: 500; color: #0f172a; }
+  .user-status { display: inline-flex; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 500; }
+  .user-status.voted { background: #d1fae5; color: #065f46; }
+  .user-status.no-vote { background: #fef3c7; color: #92400e; }
+  .user-status.not-seen { background: #f1f5f9; color: #64748b; }
+  .answer-pill { display: inline-block; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; padding: 3px 9px; border-radius: 5px; font-size: 12px; font-weight: 500; }
+
+  .info-callouts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+  .info-callout { border-radius: 8px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; }
+  .info-callout.amber { background: #fefce8; border: 1px solid #fde68a; }
+  .info-callout.blue { background: #eff6ff; border: 1px solid #bfdbfe; }
+  .info-callout .ti { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .info-callout.amber .ti { color: #b45309; }
+  .info-callout.blue .ti { color: #1e40af; }
+  .info-callout .body .head { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+  .info-callout.amber .body .head { color: #78350f; }
+  .info-callout.blue .body .head { color: #1e3a8a; }
+  .info-callout .body .text { font-size: 12px; line-height: 1.4; }
+  .info-callout.amber .body .text { color: #92400e; }
+  .info-callout.blue .body .text { color: #1e40af; }
+
+  .btn-export-excel { background: #16a34a; color: #fff; border: none; padding: 7px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; font-family: inherit; }
+  .btn-export-excel:hover { background: #15803d; }
+
+  .tab-content-placeholder { padding: 80px 24px; text-align: center; color: #94a3b8; font-size: 14px; }
+  .tab-content-placeholder .ti { font-size: 42px; color: #cbd5e1; display: block; margin-bottom: 12px; }
+
+  .chart-wrap { position: relative; height: 240px; }
+  .chart-wrap.tall { height: 280px; }
+
+  .card-hint { font-size: 12px; color: #64748b; margin-bottom: 12px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+  <div class="crm-header">
+    <div class="left"><i class="ti ti-arrows-horizontal"></i></div>
+    <div class="right">
+      <span>Чеков: 0 | Статусов: 0</span>
+      <div style="position:relative;">
+        <i class="ti ti-bell" style="font-size:20px;"></i>
+        <span class="badge-counter">1325</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <div class="sidebar">
+      <div class="user-block">
+        <div class="user-avatar">АП</div>
+        <div style="flex:1; min-width:0;">
+          <div style="font-weight:500; color:#0f172a; font-size:13px;">Азамат Псеунов</div>
+          <div style="font-size:12px; color:#64748b; margin-top:2px;">+7 (925) 716-52-80</div>
+          <div style="font-size:12px; color:#1976d2; margin-top:3px; cursor:pointer;">Выйти</div>
+        </div>
+        <i class="ti ti-edit" style="font-size:14px; color:#94a3b8;"></i>
+      </div>
+      <div class="nav-item"><span class="label"><i class="ti ti-users"></i>Рекрутинг исп.</span><i class="ti ti-chevron-down" style="font-size:13px;"></i></div>
+      <div class="nav-item"><span class="label"><i class="ti ti-truck"></i>Вахта</span><i class="ti ti-chevron-down" style="font-size:13px;"></i></div>
+      <div class="nav-item"><span class="label"><i class="ti ti-cloud-download"></i>Выгрузки</span></div>
+      <div class="nav-item"><span class="label"><i class="ti ti-file-description"></i>Подготовка договоров</span></div>
+      <div class="nav-item"><span class="label"><i class="ti ti-plug"></i>Интеграции</span></div>
+      <div class="nav-item"><span class="label"><i class="ti ti-folder"></i>Документы</span><i class="ti ti-chevron-down" style="font-size:13px;"></i></div>
+      <div class="nav-item"><span class="label"><i class="ti ti-bell-ringing"></i>Новости и обн.</span><i class="ti ti-chevron-down" style="font-size:13px;"></i></div>
+      <div class="nav-item"><span class="label"><i class="ti ti-tools"></i>Инструменты адм.</span><i class="ti ti-chevron-down" style="font-size:13px;"></i></div>
+      <div class="nav-item active-section">
+        <span class="label"><i class="ti ti-app-window"></i>Управление прил.</span>
+        <i class="ti ti-chevron-up" style="font-size:13px;"></i>
+      </div>
+      <div class="sub-item">Акции</div>
+      <div class="sub-item">Оповещения</div>
+      <div class="sub-item active">Сторисы</div>
+      <div class="sub-item">Новости</div>
+      <div class="sub-item">Инструкции</div>
+      <div class="support-block">
+        <div class="title">Техническая поддержка</div>
+        <div>С 6:00 до 00:00 мск</div>
+        <div style="margin-top:6px;">тел: <a href="#">+7 925 716-44-78</a></div>
+        <div>email: <a href="#">help@handswork.net</a></div>
+      </div>
+    </div>
+
+    <div class="main">
+
+      <div class="section-tabs">
+        <div class="tab" data-tab="list"><i class="ti ti-stack-2"></i>Все сторис</div>
+        <div class="tab active" data-tab="editor"><i class="ti ti-edit"></i>Редактор</div>
+        <div class="tab" data-tab="analytics"><i class="ti ti-chart-bar"></i>Аналитика</div>
+        <div class="tab" data-tab="templates"><i class="ti ti-sparkles"></i>Шаблоны</div>
+      </div>
+
+      <!-- ============ EDITOR TAB ============ -->
+      <div class="tab-content" id="tab-editor">
+
+        <!-- Тулбар: только хлебная крошка + кнопки. Никакой статистики — она не для черновика. -->
+        <div class="toolbar">
+          <div class="toolbar-row">
+            <div class="breadcrumb">
+              <span class="crumb-light">Сторисы /</span>
+              <span class="title">Срочные смены в Москве — оплата х1.5</span>
+              <span class="draft-badge">Черновик</span>
+              <span class="meta">·</span>
+              <span class="meta">Изменено 5 минут назад</span>
+            </div>
+            <div class="actions">
+              <button class="btn"><i class="ti ti-history"></i>История версий</button>
+              <button class="btn"><i class="ti ti-copy"></i>Дублировать</button>
+              <button class="btn"><i class="ti ti-device-floppy"></i>Сохранить черновик</button>
+              <button class="btn btn-primary"><i class="ti ti-bolt"></i>Опубликовать</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="editor-grid">
+
+          <div class="preview-col">
+            <div class="preview-label"><i class="ti ti-device-mobile"></i>Превью у исполнителя</div>
+            <div class="preview-mode-toggle">
+              <button class="active">🏠 Главный экран</button>
+              <button>📖 Сторис открыта</button>
+            </div>
+            <div class="phone-frame">
+              <div class="phone-screen">
+                <div class="story-bg">
+                  <div class="story-progress"><div class="seg filled"></div><div class="seg"></div></div>
+                  <div class="story-author">
+                    <div class="story-avatar">РР</div>
+                    <span style="font-weight:500;">Рабочие руки</span>
+                    <span style="opacity:0.7;">2ч</span>
+                  </div>
+                  <div class="urgent-badge">⚡ Срочно</div>
+                  <div class="story-title">Срочные смены в Москве — х1.5</div>
+                  <div class="story-desc">Склад в Хамовниках, сегодня и завтра — повышенная ставка. Записывайся, мест осталось мало.</div>
+                  <div class="story-cta"><button>Записаться на смену</button></div>
+                  <div class="story-reactions"><span>❤️</span><span>🔥</span><span>👍</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="preview-hint">Так увидит сторис исполнитель</div>
+          </div>
+
+          <div class="editor-col">
+
+            <div class="card">
+              <div class="card-head"><div class="card-title"><i class="ti ti-photo"></i>Контент сторис</div></div>
+              <div class="content-row">
+                <div>
+                  <div class="field-label" style="margin-bottom:6px;"><span>Обложка</span></div>
+                  <div class="cover-square"><i class="ti ti-plus"></i></div>
+                  <div class="cover-hint">JPG, PNG · до 5 МБ</div>
+                </div>
+                <div>
+                  <div class="field-label" style="margin-bottom:6px;"><span>Основной контент</span></div>
+                  <div class="file-card">
+                    <div class="file-icon"><i class="ti ti-video"></i></div>
+                    <div class="file-info">
+                      <div class="file-name">urgent_shifts_msk.mp4</div>
+                      <div class="file-meta">4.2 МБ · 0:45 · видео · в пределах лимита (60с)</div>
+                    </div>
+                    <button class="icon-btn"><i class="ti ti-trash" style="font-size:16px;"></i></button>
+                  </div>
+                  <div class="palette">
+                    <span class="palette-label">Подложка:</span>
+                    <div class="swatch active" style="background:#dc2626;"></div>
+                    <div class="swatch" style="background:#7c3aed;"></div>
+                    <div class="swatch" style="background:#0d9488;"></div>
+                    <div class="swatch" style="background:#ea580c;"></div>
+                    <div class="swatch" style="background:#0284c7;"></div>
+                    <div class="swatch" style="background:#db2777;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><div class="card-title"><i class="ti ti-edit"></i>Текст</div></div>
+              <div class="field-label"><span>Заголовок</span><span class="field-counter">31/60</span></div>
+              <input class="text-input" type="text" value="Срочные смены в Москве — х1.5">
+              <div class="field-label" style="margin-top:14px;"><span>Описание</span><span class="field-counter">93/200</span></div>
+              <textarea class="textarea-input" rows="2">Склад в Хамовниках, сегодня и завтра — повышенная ставка. Записывайся, мест осталось мало.</textarea>
+            </div>
+
+            <div class="card-row-2">
+              <div class="card">
+                <div class="card-head">
+                  <div class="card-title"><i class="ti ti-link"></i>Ссылки <span class="card-count">2/5</span></div>
+                  <button class="add-link"><i class="ti ti-plus" style="font-size:13px;"></i>Добавить</button>
+                </div>
+                <div class="link-row">
+                  <span class="type-pill">📱 В прил.</span>
+                  <span class="link-text">Записаться на смену</span>
+                  <button class="icon-btn"><i class="ti ti-trash" style="font-size:14px;"></i></button>
+                </div>
+                <div class="link-row">
+                  <span class="type-pill">🌐 Внешн.</span>
+                  <span class="link-text">Подробности в Telegram</span>
+                  <button class="icon-btn"><i class="ti ti-trash" style="font-size:14px;"></i></button>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <div class="card-title"><i class="ti ti-phone"></i>Кнопка «Связаться» <span class="card-count">3</span></div>
+                  <button class="toggle on" data-toggle></button>
+                </div>
+                <div class="contact-pills">
+                  <span class="contact-pill">📞 Звонок</span>
+                  <span class="contact-pill">✈️ Telegram</span>
+                  <span class="contact-pill">💬 Макс</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head" style="margin-bottom:10px;">
+                <div class="card-title"><i class="ti ti-target"></i>Аудитория</div>
+                <span class="audience-count">~1 850 исполнителей</span>
+              </div>
+              <div class="audience-tags">
+                <span class="audience-tag">Москва</span>
+                <span class="audience-tag">Все категории</span>
+                <span class="audience-tag">ВкусВилл</span>
+                <span class="audience-tag">М/Ж · 18–65</span>
+                <span class="audience-tag">Гражданство РФ</span>
+                <span class="audience-tag amber">+ 4 фильтра</span>
+              </div>
+            </div>
+
+            <div class="card-row-2">
+              <div class="card-collapsed">
+                <div class="card-collapsed-title"><i class="ti ti-chart-bar"></i>Опрос<span class="muted">выкл</span></div>
+                <button class="toggle" data-toggle></button>
+              </div>
+              <div class="card-collapsed">
+                <div class="card-collapsed-title"><i class="ti ti-mood-smile"></i>Реакции<span class="muted">❤️ 🔥 👍</span></div>
+                <i class="ti ti-chevron-down" style="font-size:15px; color:#94a3b8;"></i>
+              </div>
+              <div class="card-collapsed">
+                <div class="card-collapsed-title"><i class="ti ti-calendar"></i>Расписание · автодеактивация 09.05 22:00</div>
+                <i class="ti ti-chevron-down" style="font-size:15px; color:#94a3b8;"></i>
+              </div>
+              <div class="card-collapsed">
+                <div class="card-collapsed-title"><i class="ti ti-test-pipe"></i>A/B-тест<span class="muted">выкл</span></div>
+                <button class="toggle" data-toggle></button>
+              </div>
+              <div class="card-collapsed">
+                <div class="card-collapsed-title"><i class="ti ti-coin"></i>Доплата за смену<span class="muted">2 500₽ + 500₽</span></div>
+                <button class="toggle on" data-toggle></button>
+              </div>
+              <div class="card-collapsed">
+                <div class="card-collapsed-title"><i class="ti ti-shield-check"></i>UTM-метки добавятся автоматически</div>
+                <i class="ti ti-info-circle" style="font-size:15px; color:#94a3b8;"></i>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ ANALYTICS TAB ============ -->
+      <div class="tab-content hidden" id="tab-analytics">
+        <div class="analytics-wrap">
+
+          <div class="analytics-toolbar">
+            <div class="left-controls">
+              <div class="control-group">
+                <div class="control-label">Сторис</div>
+                <select class="story-select">
+                  <option>Срочные смены в Москве — х1.5</option>
+                  <option>Откуда вы о нас узнали? (опрос)</option>
+                  <option>Реферальная программа +2000₽</option>
+                  <option>Инструкция по выходу на смену</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <div class="control-label">Тип контента</div>
+                <div class="seg-control">
+                  <button class="active"><i class="ti ti-video"></i>Видео</button>
+                  <button><i class="ti ti-photo"></i>Фото</button>
+                </div>
+              </div>
+            </div>
+            <div class="actions">
+              <button class="btn"><i class="ti ti-filter"></i>Период: 7 дней</button>
+              <button class="btn"><i class="ti ti-download"></i>Экспорт CSV</button>
+            </div>
+          </div>
+
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-card-head"><span class="kpi-card-label">Просмотры</span><div class="kpi-icon kpi-icon-blue"><i class="ti ti-eye"></i></div></div>
+              <div class="kpi-card-value">284 510</div>
+              <span class="kpi-delta up"><i class="ti ti-arrow-up-right" style="font-size:12px;"></i>12.4%</span>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-card-head"><span class="kpi-card-label">Клики по ссылкам</span><div class="kpi-icon kpi-icon-violet"><i class="ti ti-click"></i></div></div>
+              <div class="kpi-card-value">38 960</div>
+              <span class="kpi-delta up"><i class="ti ti-arrow-up-right" style="font-size:12px;"></i>8.1%</span>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-card-head"><span class="kpi-card-label">Записи</span><div class="kpi-icon kpi-icon-emerald"><i class="ti ti-user-check"></i></div></div>
+              <div class="kpi-card-value">6 893</div>
+              <span class="kpi-delta up"><i class="ti ti-arrow-up-right" style="font-size:12px;"></i>15.7%</span>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-card-head"><span class="kpi-card-label">Вышли на смену</span><div class="kpi-icon kpi-icon-amber"><i class="ti ti-circle-check"></i></div></div>
+              <div class="kpi-card-value">5 175</div>
+              <span class="kpi-delta down"><i class="ti ti-arrow-down-right" style="font-size:12px;"></i>2.3%</span>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-card-head"><span class="kpi-card-label">Конверсия V→Запись</span><div class="kpi-icon kpi-icon-rose"><i class="ti ti-trending-up"></i></div></div>
+              <div class="kpi-card-value">2.4%</div>
+              <span class="kpi-delta up"><i class="ti ti-arrow-up-right" style="font-size:12px;"></i>3.4%</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><div class="card-title"><i class="ti ti-stack-2"></i>Воронка: от просмотра до выхода на смену</div></div>
+            <div>
+              <div class="funnel-row">
+                <div class="funnel-label">Просмотры</div>
+                <div class="funnel-bar-track"><div class="funnel-bar" style="background:#1976d2; width:100%;">284 510</div></div>
+                <div class="funnel-pct">100%</div>
+              </div>
+              <div class="funnel-row">
+                <div class="funnel-label">Клики по ссылке</div>
+                <div class="funnel-bar-track"><div class="funnel-bar" style="background:#7c3aed; width:13.7%;">38 960</div></div>
+                <div class="funnel-pct">13.7%</div>
+              </div>
+              <div class="funnel-row">
+                <div class="funnel-label">Записались</div>
+                <div class="funnel-bar-track"><div class="funnel-bar" style="background:#10b981; width:12%;">6 893</div></div>
+                <div class="funnel-pct">2.4%</div>
+              </div>
+              <div class="funnel-row">
+                <div class="funnel-label">Вышли на смену</div>
+                <div class="funnel-bar-track"><div class="funnel-bar" style="background:#f59e0b; width:12%;">5 175</div></div>
+                <div class="funnel-pct">1.8%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="charts-2col">
+            <div class="card">
+              <div class="card-head"><div class="card-title"><i class="ti ti-trending-up"></i>Кривая досмотра (drop-off)</div></div>
+              <div class="card-hint">Сколько исполнителей оставалось в видео в каждую секунду. Резкий спад → улучшить этот момент.</div>
+              <div class="chart-wrap"><canvas id="chart-dropoff"></canvas></div>
+              <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:10px;">
+                <div style="background:#f8fafc; border-radius:6px; padding:8px; text-align:center;">
+                  <div style="font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:0.04em;">Досмотрели</div>
+                  <div style="font-size:18px; font-weight:500;">45%</div>
+                </div>
+                <div style="background:#fef3c7; border:1px solid #fde68a; border-radius:6px; padding:8px; text-align:center;">
+                  <div style="font-size:10px; color:#b45309; text-transform:uppercase; letter-spacing:0.04em;">Пик отсева</div>
+                  <div style="font-size:18px; font-weight:500; color:#92400e;">6–9с</div>
+                </div>
+                <div style="background:#f8fafc; border-radius:6px; padding:8px; text-align:center;">
+                  <div style="font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:0.04em;">Replay</div>
+                  <div style="font-size:18px; font-weight:500;">12%</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><div class="card-title"><i class="ti ti-clock"></i>Лучшее время публикации</div></div>
+              <div class="card-hint">CTR по часу и дню. Темнее = лучше конверсия.</div>
+              <table class="heatmap">
+                <thead><tr><th></th><th>7:00</th><th>10:00</th><th>13:00</th><th>16:00</th><th>19:00</th><th>21:00</th></tr></thead>
+                <tbody id="heatmap-body"></tbody>
+              </table>
+              <div class="heatmap-callout">🏆 Пятница 19:00 — CTR 22%, лучшее окно для срочных сторис</div>
+            </div>
+          </div>
+
+          <div class="charts-2col">
+            <div class="card">
+              <div class="card-head">
+                <div class="card-title"><i class="ti ti-map-pin"></i>Просмотры и записи по городам</div>
+                <div style="display:flex; align-items:center; gap:8px; font-size:12px;">
+                  <span style="color:#64748b;">Объединять с областью</span>
+                  <button class="toggle on" data-toggle></button>
+                </div>
+              </div>
+              <div class="chart-wrap tall"><canvas id="chart-cities"></canvas></div>
+              <div style="display:flex; gap:14px; margin-top:8px; font-size:11px; color:#64748b;">
+                <div style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; background:#1976d2; border-radius:2px;"></span>Город</div>
+                <div style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; background:#90caf9; border-radius:2px;"></span>Область</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><div class="card-title"><i class="ti ti-trending-up"></i>Динамика по дням</div></div>
+              <div class="chart-wrap tall"><canvas id="chart-timeseries"></canvas></div>
+            </div>
+          </div>
+
+          <div class="charts-2col">
+            <div class="card">
+              <div class="card-head">
+                <div class="card-title"><i class="ti ti-chart-bar"></i>Результаты опроса «Откуда узнали»</div>
+                <button class="add-link" style="color:#16a34a;"><i class="ti ti-download" style="font-size:13px;"></i>Excel</button>
+              </div>
+              <div>
+                <div class="poll-row"><div class="poll-row-head"><span class="opt">Через друзей и знакомых</span><span class="stats">487 (42%)</span></div><div class="poll-bar-track"><div class="poll-bar" style="width:42%; background:#1976d2;"></div></div></div>
+                <div class="poll-row"><div class="poll-row-head"><span class="opt">Реклама ВКонтакте</span><span class="stats">286 (25%)</span></div><div class="poll-bar-track"><div class="poll-bar" style="width:25%; background:#42a5f5;"></div></div></div>
+                <div class="poll-row"><div class="poll-row-head"><span class="opt">Поиск в интернете</span><span class="stats">198 (17%)</span></div><div class="poll-bar-track"><div class="poll-bar" style="width:17%; background:#7e57c2;"></div></div></div>
+                <div class="poll-row"><div class="poll-row-head"><span class="opt">Telegram-каналы</span><span class="stats">116 (10%)</span></div><div class="poll-bar-track"><div class="poll-bar" style="width:10%; background:#26a69a;"></div></div></div>
+                <div class="poll-row"><div class="poll-row-head"><span class="opt">Другое</span><span class="stats">70 (6%)</span></div><div class="poll-bar-track"><div class="poll-bar" style="width:6%; background:#ef5350;"></div></div></div>
+              </div>
+              <div class="poll-summary">
+                <span class="left">Всего ответов: <b>1 157</b> · Конверсия в ответ: <b>9.2%</b></span>
+                <span class="right">Защита от накруток вкл.</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><div class="card-title"><i class="ti ti-mood-smile"></i>Реакции и вовлечение</div></div>
+              <div class="reactions-grid">
+                <div class="reaction-card"><div class="reaction-emoji">❤️</div><div class="reaction-count">1 842</div><div class="reaction-label">нравится</div></div>
+                <div class="reaction-card"><div class="reaction-emoji">🔥</div><div class="reaction-count">924</div><div class="reaction-label">огонь</div></div>
+                <div class="reaction-card"><div class="reaction-emoji">👍</div><div class="reaction-count">612</div><div class="reaction-label">согласен</div></div>
+              </div>
+              <div class="card-hint" style="margin-bottom:0;">Реакции — самый лёгкий способ для исполнителя дать обратную связь. Высокий ❤️ = контент попал в боль, высокий 🔥 = акция «зашла».</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><div class="card-title"><i class="ti ti-stack-2"></i>Сравнение всех сторис</div></div>
+            <table class="comp-table">
+              <thead>
+                <tr>
+                  <th>Сторис</th>
+                  <th class="right">Просмотры</th>
+                  <th class="right">CTR</th>
+                  <th class="right">Записи</th>
+                  <th class="right">Стоимость записи</th>
+                  <th class="right">ROI</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td class="title">Срочные смены в Москве — х1.5</td><td class="right">8 420</td><td class="right">14.2%</td><td class="right">312</td><td class="right">84 ₽</td><td class="right"><span class="roi-pill high">×4.8</span></td></tr>
+                <tr><td class="title">Реферальная программа +500₽</td><td class="right">6 510</td><td class="right">18.7%</td><td class="right">198</td><td class="right">62 ₽</td><td class="right"><span class="roi-pill high">×6.1</span></td></tr>
+                <tr><td class="title">Откуда вы о нас узнали?</td><td class="right">12 180</td><td class="right">—</td><td class="right">—</td><td class="right">—</td><td class="right">—</td></tr>
+                <tr><td class="title">Инструкция по выходу на смену</td><td class="right">21 340</td><td class="right">8.1%</td><td class="right">145</td><td class="right">110 ₽</td><td class="right"><span class="roi-pill mid">×2.4</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title"><i class="ti ti-users"></i>Подробно по исполнителям</div>
+              <button class="btn-export-excel"><i class="ti ti-download" style="font-size:13px;"></i>Excel-выгрузка</button>
+            </div>
+
+            <div class="filter-chips">
+              <button class="filter-chip active">Все<span class="filter-chip-count">10</span></button>
+              <button class="filter-chip">Прошли опрос<span class="filter-chip-count">5</span></button>
+              <button class="filter-chip">Увидели, не ответили<span class="filter-chip-count">4</span></button>
+              <button class="filter-chip">Не увидели<span class="filter-chip-count">1</span></button>
+              <button class="filter-chip">Поставили реакцию<span class="filter-chip-count">5</span></button>
+            </div>
+
+            <div class="search-input-wrap">
+              <i class="ti ti-search"></i>
+              <input class="search-input" type="text" placeholder="Поиск по ФИО, телефону или ID...">
+            </div>
+
+            <div style="overflow-x:auto;">
+              <table class="users-table">
+                <thead>
+                  <tr>
+                    <th>ID</th><th>ФИО</th><th>Телефон</th><th>Город</th>
+                    <th class="right">Смен</th><th class="right">★</th>
+                    <th class="center">Просмотр</th><th>Статус</th>
+                    <th>Ответ</th><th class="center">Реакция</th><th>Время</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td class="user-id">10042</td><td class="user-fio">Петров А.С.</td><td>+7 916 234-12-89</td><td>Москва</td><td class="right">47</td><td class="right">★ 9.6</td><td class="center" style="color:#059669;">✓ 8.2с</td><td><span class="user-status voted">Прошёл опрос</span></td><td><span class="answer-pill">💬 Через друзей</span></td><td class="center" style="font-size:16px;">🔥</td><td>03.05 14:22</td></tr>
+                  <tr><td class="user-id">10043</td><td class="user-fio">Иванов М.Д.</td><td>+7 925 117-04-22</td><td>Москва</td><td class="right">12</td><td class="right">★ 9.0</td><td class="center" style="color:#059669;">✓ 4.5с</td><td><span class="user-status no-vote">Не ответил</span></td><td style="color:#cbd5e1;">—</td><td class="center" style="color:#cbd5e1;">—</td><td>03.05 14:48</td></tr>
+                  <tr><td class="user-id">10044</td><td class="user-fio">Сидорова К.В.</td><td>+7 999 882-65-13</td><td>Краснодар</td><td class="right">89</td><td class="right">★ 9.8</td><td class="center" style="color:#059669;">✓ 11.1с</td><td><span class="user-status voted">Прошёл опрос</span></td><td><span class="answer-pill">💬 Реклама ВК</span></td><td class="center" style="font-size:16px;">❤️</td><td>03.05 15:03</td></tr>
+                  <tr><td class="user-id">10045</td><td class="user-fio">Кузнецов И.А.</td><td>+7 905 443-21-00</td><td>СПб</td><td class="right">3</td><td class="right">★ 8.4</td><td class="center" style="color:#059669;">✓ 2.1с</td><td><span class="user-status no-vote">Не ответил</span></td><td style="color:#cbd5e1;">—</td><td class="center" style="color:#cbd5e1;">—</td><td>03.05 15:10</td></tr>
+                  <tr><td class="user-id">10046</td><td class="user-fio">Лебедев Р.П.</td><td>+7 911 765-43-21</td><td>СПб</td><td class="right">124</td><td class="right">★ 10.0</td><td class="center" style="color:#059669;">✓ 9.8с</td><td><span class="user-status voted">Прошёл опрос</span></td><td><span class="answer-pill">💬 Через друзей</span></td><td class="center" style="font-size:16px;">👍</td><td>03.05 15:34</td></tr>
+                  <tr><td class="user-id">10047</td><td class="user-fio">Морозов В.Е.</td><td>+7 967 112-33-44</td><td>Москва</td><td class="right">28</td><td class="right">★ 9.2</td><td class="center" style="color:#cbd5e1;">—</td><td><span class="user-status not-seen">Не увидел</span></td><td style="color:#cbd5e1;">—</td><td class="center" style="color:#cbd5e1;">—</td><td>—</td></tr>
+                  <tr><td class="user-id">10048</td><td class="user-fio">Алексеев Д.К.</td><td>+7 903 998-12-77</td><td>Краснодар</td><td class="right">67</td><td class="right">★ 9.4</td><td class="center" style="color:#059669;">✓ 6.3с</td><td><span class="user-status no-vote">Не ответил</span></td><td style="color:#cbd5e1;">—</td><td class="center" style="font-size:16px;">🔥</td><td>03.05 16:01</td></tr>
+                  <tr><td class="user-id">10049</td><td class="user-fio">Соколова Н.Ю.</td><td>+7 962 334-22-11</td><td>Екатеринбург</td><td class="right">41</td><td class="right">★ 9.6</td><td class="center" style="color:#059669;">✓ 7.7с</td><td><span class="user-status voted">Прошёл опрос</span></td><td><span class="answer-pill">💬 Telegram-каналы</span></td><td class="center" style="color:#cbd5e1;">—</td><td>04.05 09:15</td></tr>
+                  <tr><td class="user-id">10050</td><td class="user-fio">Никитин С.А.</td><td>+7 985 222-43-87</td><td>Москва</td><td class="right">8</td><td class="right">★ 8.6</td><td class="center" style="color:#059669;">✓ 3.4с</td><td><span class="user-status no-vote">Не ответил</span></td><td style="color:#cbd5e1;">—</td><td class="center" style="color:#cbd5e1;">—</td><td>04.05 10:22</td></tr>
+                  <tr><td class="user-id">10051</td><td class="user-fio">Волкова Е.И.</td><td>+7 926 100-99-88</td><td>Казань</td><td class="right">56</td><td class="right">★ 9.8</td><td class="center" style="color:#059669;">✓ 10.2с</td><td><span class="user-status voted">Прошёл опрос</span></td><td><span class="answer-pill">💬 Поиск в интернете</span></td><td class="center" style="font-size:16px;">❤️</td><td>04.05 11:48</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="info-callouts">
+              <div class="info-callout amber">
+                <i class="ti ti-user-x"></i>
+                <div class="body">
+                  <div class="head">«Увидели, не ответили» — главный сегмент для маркетинга</div>
+                  <div class="text">Эти исполнители уже в воронке, но не дошли до целевого действия. Можно сделать ретаргет push-уведомлением, повторной сторис или ручным обзвоном.</div>
+                </div>
+              </div>
+              <div class="info-callout blue">
+                <i class="ti ti-file-spreadsheet"></i>
+                <div class="body">
+                  <div class="head">Excel-выгрузка</div>
+                  <div class="text">Все 4 сегмента (ответили / не ответили / не увидели / реакции) — отдельными листами, со сводкой и формулами. Готова для CRM, обзвона или Excel-аналитики.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-content hidden" id="tab-list">
+        <div class="tab-content-placeholder"><i class="ti ti-stack-2"></i>Здесь будет список всех сторис — таблица как в текущей CRM.</div>
+      </div>
+      <div class="tab-content hidden" id="tab-templates">
+        <div class="tab-content-placeholder"><i class="ti ti-sparkles"></i>Шаблоны для быстрого создания: «Срочная смена», «Опрос», «Реферальная программа» и т.д.</div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+      tab.classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.remove('hidden');
+      if (tab.dataset.tab === 'analytics' && !window.__chartsRendered) {
+        renderCharts();
+        window.__chartsRendered = true;
+      }
+    });
+  });
+
+  // Toggles
+  document.querySelectorAll('[data-toggle]').forEach(t => {
+    t.addEventListener('click', () => t.classList.toggle('on'));
+  });
+
+  // Preview mode
+  document.querySelectorAll('.preview-mode-toggle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // Palette swap
+  document.querySelectorAll('.swatch').forEach(s => {
+    s.addEventListener('click', () => {
+      s.parentElement.querySelectorAll('.swatch').forEach(x => x.classList.remove('active'));
+      s.classList.add('active');
+      const color = s.style.background;
+      document.querySelector('.story-bg').style.background = `linear-gradient(135deg, ${color}, ${color})`;
+      document.querySelector('.cover-square').style.background = `linear-gradient(135deg, ${color}, ${color})`;
+    });
+  });
+
+  // Filter chips
+  document.querySelectorAll('.filter-chip').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+    });
+  });
+
+  // Segmented control
+  document.querySelectorAll('.seg-control').forEach(sc => {
+    sc.querySelectorAll('button').forEach(b => {
+      b.addEventListener('click', () => {
+        sc.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+      });
+    });
+  });
+
+  // Heatmap render
+  (function() {
+    const data = [
+      { d: 'Пн', v: [6, 10, 9, 12, 17, 11] },
+      { d: 'Вт', v: [7, 11, 10, 13, 18, 12] },
+      { d: 'Ср', v: [6, 10, 9, 14, 19, 13] },
+      { d: 'Чт', v: [7, 11, 10, 13, 20, 14] },
+      { d: 'Пт', v: [8, 12, 11, 12, 22, 15] },
+      { d: 'Сб', v: [10, 13, 12, 10, 15, 10] },
+      { d: 'Вс', v: [9, 11, 10, 9, 13, 9] }
+    ];
+    const tbody = document.getElementById('heatmap-body');
+    if (!tbody) return;
+    tbody.innerHTML = data.map(row => {
+      const cells = row.v.map(val => {
+        const intensity = val / 22;
+        const bg = `rgba(25,118,210,${0.07 + intensity * 0.9})`;
+        const tc = intensity > 0.5 ? '#fff' : '#475569';
+        return `<td class="cell"><div style="background:${bg}; color:${tc};">${val}%</div></td>`;
+      }).join('');
+      return `<tr><td class="day-label">${row.d}</td>${cells}</tr>`;
+    }).join('');
+  })();
+
+  function renderCharts() {
+    new Chart(document.getElementById('chart-dropoff'), {
+      type: 'line',
+      data: {
+        labels: ['0с','3с','6с','9с','12с','20с','30с','45с'],
+        datasets: [{
+          label: 'Осталось',
+          data: [100, 92, 84, 71, 63, 52, 48, 45],
+          borderColor: '#1976d2',
+          backgroundColor: 'rgba(25,118,210,0.12)',
+          borderWidth: 2, fill: true, tension: 0.35,
+          pointRadius: 3, pointBackgroundColor: '#1976d2'
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ctx.parsed.y + '%' } }
+        },
+        scales: {
+          y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%', font: { size: 10 } }, grid: { color: '#e2e8f0' } },
+          x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+        }
+      }
+    });
+
+    new Chart(document.getElementById('chart-cities'), {
+      type: 'bar',
+      data: {
+        labels: ['Москва', 'Санкт-Петербург', 'Краснодар', 'Екатеринбург', 'Новосибирск', 'Казань'],
+        datasets: [
+          { label: 'Город', data: [98450, 64230, 38810, 30920, 25210, 22890], backgroundColor: '#1976d2' },
+          { label: 'Область', data: [14820, 7320, 9240, 3410, 2280, 1490], backgroundColor: '#90caf9' }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.x.toLocaleString('ru')}` } }
+        },
+        scales: {
+          x: { stacked: true, ticks: { font: { size: 10 }, callback: v => v.toLocaleString('ru') }, grid: { color: '#e2e8f0' } },
+          y: { stacked: true, ticks: { font: { size: 11 } }, grid: { display: false } }
+        }
+      }
+    });
+
+    new Chart(document.getElementById('chart-timeseries'), {
+      type: 'line',
+      data: {
+        labels: ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'],
+        datasets: [
+          { label: 'Просмотры', data: [32400, 39100, 46300, 54800, 65200, 41400, 35800], borderColor: '#1976d2', backgroundColor: 'rgba(25,118,210,0.18)', borderWidth: 2, fill: true, tension: 0.35 },
+          { label: 'Клики', data: [4580, 5520, 6910, 8180, 9620, 5760, 4680], borderColor: '#7e57c2', backgroundColor: 'rgba(126,87,194,0.15)', borderWidth: 2, fill: true, tension: 0.35 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { boxWidth: 10, boxHeight: 10, font: { size: 11 } } } },
+        scales: {
+          y: { beginAtZero: true, ticks: { font: { size: 10 }, callback: v => v.toLocaleString('ru') }, grid: { color: '#e2e8f0' } },
+          x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+        }
+      }
+    });
+  }
+</script>
+</body>
+</html>
