@@ -10,8 +10,7 @@ import {
   Upload, FileSpreadsheet, Star, ShieldCheck, UserX, UserPlus,
   Bold, Italic, Underline, List, Strikethrough, AlertCircle,
   Wallet, Coins, Briefcase, GripVertical, Code, ImagePlus,
-  CircleDollarSign, Percent, Calculator, Building2, Boxes,
-  History
+  CircleDollarSign, Percent, Calculator, Building2, Boxes
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -419,37 +418,43 @@ function StoryFullscreenView({ title, description, links, hasContact, contacts, 
 }
 
 // ============ Editor Tab ============
-function EditorView({ showToast }) {
-  const [title, setTitle] = useState('Срочные смены в Москве — оплата х1.5');
-  const [description, setDescription] = useState('Нужны исполнители на склад в Хамовниках. Сегодня и завтра — повышенная ставка. Записывайся, мест осталось мало.');
-  const [contentFile, setContentFile] = useState({ name: 'urgent_shifts_msk.mp4', size: '4.2 МБ', type: 'video', duration: 45 });
+function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
+  // mode: 'new' = чистая форма; 'template' = шаблон с автозаполнением часто используемых функций
+  const isTemplate = mode === 'template';
+  const t = templateData || {};
+
+  const [title, setTitle] = useState(isTemplate ? (t.title || '') : '');
+  const [description, setDescription] = useState(isTemplate ? (t.body || '') : '');
+  const [contentFile, setContentFile] = useState(isTemplate ? { name: 'template_cover.mp4', size: '3.1 МБ', type: 'video', duration: 30 } : null);
   const [contentError, setContentError] = useState('');
-  const [links, setLinks] = useState([
-    { text: 'Записаться на смену', url: 'app://shifts/urgent-msk', type: 'internal' },
-    { text: 'Подробности в Telegram', url: 'https://t.me/rabochie_ruki', type: 'external' }
+  const [links, setLinks] = useState(isTemplate ? [
+    { text: 'Записаться', url: 'app://shifts/', type: 'internal' }
+  ] : []);
+  const [hasContact, setHasContact] = useState(isTemplate ? !!t.hasContact : false);
+  const [contacts, setContacts] = useState(isTemplate && t.hasContact ? [
+    { type: 'call', label: 'Позвонить менеджеру', value: '+7 (495) 123-45-67' }
+  ] : [
+    { type: 'call', label: 'Позвонить менеджеру', value: '' }
   ]);
-  const [hasContact, setHasContact] = useState(true);
-  const [contacts, setContacts] = useState([
-    { type: 'call', label: 'Позвонить менеджеру', value: '+7 (495) 123-45-67' },
-    { type: 'telegram', label: 'Написать в Telegram', value: '@rabochie_ruki' },
-    { type: 'max', label: 'Написать в Макс', value: 'max.ru/rabochie_ruki' }
-  ]);
-  const [hasPoll, setHasPoll] = useState(false);
-  const [polls, setPolls] = useState([
+  const [hasPoll, setHasPoll] = useState(isTemplate ? !!t.hasPoll : false);
+  const [polls, setPolls] = useState(isTemplate && t.hasPoll ? [
     { question: 'Откуда вы о нас узнали?', type: 'single', options: ['Через друзей', 'Реклама ВК', 'Поиск в интернете', 'Telegram-каналы', 'Другое'] }
+  ] : [
+    { question: '', type: 'single', options: ['', '', ''] }
   ]);
   const [pollProtection, setPollProtection] = useState({ delay: true, confirm: true, oneVote: true, randomize: true });
   const [pollAudienceFilter, setPollAudienceFilter] = useState('all');
   const [pollUserAnswered, setPollUserAnswered] = useState(false); // Simulation state
-  const [hasCopay, setHasCopay] = useState(true);
+  const [hasCopay, setHasCopay] = useState(isTemplate ? !!t.hasCopay : false);
   const [copay, setCopay] = useState({ clientRate: 2500, bonus: 500, text: 'Доплата сразу на карту' });
-  const [reactionsEnabled, setReactionsEnabled] = useState(true);
+  // Реакции — частая фича, по умолчанию on в шаблоне
+  const [reactionsEnabled, setReactionsEnabled] = useState(isTemplate);
   const [customReactions, setCustomReactions] = useState(['❤️', '🔥', '👍']);
-  const [isUrgent, setIsUrgent] = useState(true);
-  const [targetCities, setTargetCities] = useState(['Москва']);
+  const [isUrgent, setIsUrgent] = useState(isTemplate && (t.cat === 'urgent'));
+  const [targetCities, setTargetCities] = useState(isTemplate ? ['Москва'] : []);
   const [groupParentCity, setGroupParentCity] = useState(true);
   const [targetCategory, setTargetCategory] = useState('Все категории');
-  const [targetPartners, setTargetPartners] = useState(['p1']);
+  const [targetPartners, setTargetPartners] = useState(isTemplate ? ['p1'] : []);
   const [targetSubPartner, setTargetSubPartner] = useState('Все объекты');
   const [quickSegment, setQuickSegment] = useState(null);
   const [targetMode, setTargetMode] = useState('filters');
@@ -499,12 +504,12 @@ function EditorView({ showToast }) {
     // (Партнёр уже выше как targetPartners)
     minRating: 0, // 10-point
   });
-  const [autoDeactivate, setAutoDeactivate] = useState(true);
+  const [autoDeactivate, setAutoDeactivate] = useState(isTemplate);
   const [autoDeactivateDate, setAutoDeactivateDate] = useState('2026-05-09T22:00');
-  const [autoDeactivateOnBrokenLink, setAutoDeactivateOnBrokenLink] = useState(true);
+  const [autoDeactivateOnBrokenLink, setAutoDeactivateOnBrokenLink] = useState(isTemplate);
   const [abTest, setAbTest] = useState(false);
   const [abVariant, setAbVariant] = useState('A');
-  const [coverColor, setCoverColor] = useState('bg-gradient-to-br from-orange-400 via-red-500 to-rose-600');
+  const [coverColor, setCoverColor] = useState(isTemplate && t.cover ? t.cover : 'bg-gradient-to-br from-orange-400 via-red-500 to-rose-600');
   const [coverColorB, setCoverColorB] = useState('bg-gradient-to-br from-violet-500 via-purple-600 to-indigo-700');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [emojiTarget, setEmojiTarget] = useState(null); // 'title' | 'description'
@@ -639,9 +644,28 @@ function EditorView({ showToast }) {
     'bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900'
   ];
 
+  // Quick-access sections — щелчок переносит в нужную карточку настройки
+  const quickSections = [
+    { id: 'sec-content', label: 'Контент', icon: '🖼️' },
+    { id: 'sec-text', label: 'Текст', icon: '✏️' },
+    { id: 'sec-links', label: 'Ссылки', icon: '🔗' },
+    { id: 'sec-contacts', label: 'Связь', icon: '📞' },
+    { id: 'sec-polls', label: 'Опрос', icon: '📊' },
+    { id: 'sec-targeting', label: 'Таргетинг', icon: '🎯' },
+    { id: 'sec-copay', label: 'Доплата', icon: '💰' },
+    { id: 'sec-reactions', label: 'Реакции', icon: '😊' },
+    { id: 'sec-urgent', label: 'Срочно', icon: '⚡' },
+    { id: 'sec-abtest', label: 'A/B-тест', icon: '🧪' },
+    { id: 'sec-deactivate', label: 'Авто-снятие', icon: '⏰' }
+  ];
+  const scrollToSection = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6 p-6">
-      {/* Preview column — теперь слева */}
+    <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 p-6">
+      {/* Preview column — СЛЕВА, sticky, всегда виден при скролле настроек */}
       <PhonePreview
         title={title}
         description={description}
@@ -660,10 +684,38 @@ function EditorView({ showToast }) {
         pollUserAnswered={pollUserAnswered}
         setPollUserAnswered={setPollUserAnswered}
       />
-      {/* Form column — теперь справа */}
+
+      {/* Settings column — справа, скроллится */}
       <div className="space-y-5 min-w-0">
+        {/* Quick-access bar — кнопки быстрого доступа к настройкам */}
+        <div className="sticky top-0 z-20 bg-slate-50/95 backdrop-blur -mx-6 px-6 py-2.5 border-b border-slate-200">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
+            <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold flex-shrink-0 mr-1">Быстрый переход:</span>
+            {quickSections.map(s => (
+              <button
+                key={s.id}
+                onClick={() => scrollToSection(s.id)}
+                className="flex-shrink-0 px-2.5 py-1 rounded-full bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 text-[11px] font-medium text-slate-600 transition flex items-center gap-1"
+                title={`Перейти к разделу: ${s.label}`}
+              >
+                <span>{s.icon}</span>{s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {isTemplate && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-start gap-2.5">
+            <Sparkles size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-xs text-blue-900 leading-snug">
+              <div className="font-bold mb-0.5">Загружен шаблон{t.name ? ` «${t.name}»` : ''}</div>
+              <div className="text-blue-800">Самые часто используемые настройки уже включены — отредактируйте под себя или оставьте как есть.</div>
+            </div>
+          </div>
+        )}
+
         {/* Cover & content */}
-        <Card title="Контент сторис" icon={<ImageIcon size={16} />}>
+        <div id="sec-content"><Card title="Контент сторис" icon={<ImageIcon size={16} />}>
           <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-4">
             <div>
               <div className="text-xs text-slate-500 mb-2">Обложка</div>
@@ -742,10 +794,10 @@ function EditorView({ showToast }) {
               </div>
             </div>
           </div>
-        </Card>
+        </Card></div>
 
         {/* Title & description */}
-        <Card title="Текст" icon={<Edit3 size={16} />}>
+        <div id="sec-text"><Card title="Текст" icon={<Edit3 size={16} />}>
           <Field label="Заголовок" hint={`${title.length}/60`}>
             <div className="relative">
               <input
@@ -826,10 +878,10 @@ function EditorView({ showToast }) {
               </div>
             </div>
           )}
-        </Card>
+        </Card></div>
 
         {/* Links */}
-        <Card
+        <div id="sec-links"><Card
           title={`Ссылки (${links.length}/5)`}
           icon={<Link2 size={16} />}
           action={
@@ -871,10 +923,10 @@ function EditorView({ showToast }) {
           <div className="mt-3 text-[11px] text-slate-500 flex items-center gap-1.5">
             <Hash size={11} /> UTM-метки добавятся автоматически при публикации
           </div>
-        </Card>
+        </Card></div>
 
         {/* Contact button — multi-contact */}
-        <Card
+        <div id="sec-contacts"><Card
           title={`Кнопка «Связаться» (${contacts.filter(c => c.value).length})`}
           icon={<Phone size={16} />}
           action={<Toggle on={hasContact} onChange={setHasContact} />}
@@ -932,10 +984,10 @@ function EditorView({ showToast }) {
               </div>
             </div>
           )}
-        </Card>
+        </Card></div>
 
         {/* Polls — multi-question */}
-        <Card
+        <div id="sec-polls"><Card
           title={`Опросы (${polls.length}/3)`}
           icon={<BarChart3 size={16} />}
           action={<Toggle on={hasPoll} onChange={setHasPoll} />}
@@ -1082,10 +1134,10 @@ function EditorView({ showToast }) {
               </div>
             </div>
           )}
-        </Card>
+        </Card></div>
 
         {/* Targeting */}
-        <Card title="Таргетинг (кому показать)" icon={<Target size={16} />}>
+        <div id="sec-targeting"><Card title="Таргетинг (кому показать)" icon={<Target size={16} />}>
           {/* Mode tabs */}
           <div className="flex gap-1 mb-4 bg-slate-100 p-1 rounded-lg">
             {[
@@ -1633,10 +1685,10 @@ function EditorView({ showToast }) {
               <div className="text-blue-700">Учитываются все активные фильтры. Сегментированный показ снижает нагрузку на ленту и повышает CTR.</div>
             </div>
           </div>
-        </Card>
+        </Card></div>
 
         {/* Schedule */}
-        <Card title="Авто-снятие сторис" icon={<Calendar size={16} />}>
+        <div id="sec-deactivate"><Card title="Авто-снятие сторис" icon={<Calendar size={16} />}>
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
               <div>
@@ -1662,10 +1714,10 @@ function EditorView({ showToast }) {
               <Toggle on={autoDeactivateOnBrokenLink} onChange={setAutoDeactivateOnBrokenLink} />
             </div>
           </div>
-        </Card>
+        </Card></div>
 
         {/* Co-payment from РР */}
-        <Card title="Доплата от платформы РР" icon={<CircleDollarSign size={16} />} action={<Toggle on={hasCopay} onChange={setHasCopay} />}>
+        <div id="sec-copay"><Card title="Доплата от платформы РР" icon={<CircleDollarSign size={16} />} action={<Toggle on={hasCopay} onChange={setHasCopay} />}>
           {hasCopay && (
             <div className="space-y-3">
               <div className="grid grid-cols-3 gap-3">
@@ -1724,10 +1776,10 @@ function EditorView({ showToast }) {
               </div>
             </div>
           )}
-        </Card>
+        </Card></div>
 
         {/* Reactions — customizable */}
-        <Card title="Реакции (эмодзи)" icon={<Smile size={16} />} action={<Toggle on={reactionsEnabled} onChange={setReactionsEnabled} />}>
+        <div id="sec-reactions"><Card title="Реакции (эмодзи)" icon={<Smile size={16} />} action={<Toggle on={reactionsEnabled} onChange={setReactionsEnabled} />}>
           {reactionsEnabled && (
             <div className="space-y-3">
               <div className="text-xs text-slate-600">
@@ -1755,10 +1807,10 @@ function EditorView({ showToast }) {
               </div>
             </div>
           )}
-        </Card>
+        </Card></div>
 
         {/* Urgency marking */}
-        <Card title="Выделение сторис" icon={<Zap size={16} />} action={<Toggle on={isUrgent} onChange={setIsUrgent} />}>
+        <div id="sec-urgent"><Card title="Выделение сторис" icon={<Zap size={16} />} action={<Toggle on={isUrgent} onChange={setIsUrgent} />}>
           {isUrgent ? (
             <div className="space-y-3">
               <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2.5">
@@ -1794,10 +1846,10 @@ function EditorView({ showToast }) {
               Обычная сторис показывается в стандартном порядке, без анимации. Включите, если нужно срочно привлечь внимание — горящие вакансии, дедлайны, важные изменения.
             </div>
           )}
-        </Card>
+        </Card></div>
 
         {/* A/B test — with thumbnails */}
-        <Card title="A/B-тест" icon={<Layers size={16} />} action={<Toggle on={abTest} onChange={setAbTest} />}>
+        <div id="sec-abtest"><Card title="A/B-тест" icon={<Layers size={16} />} action={<Toggle on={abTest} onChange={setAbTest} />}>
           {abTest ? (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
@@ -1866,10 +1918,13 @@ function EditorView({ showToast }) {
               Опубликовать 2 версии параллельно и автоматически оставить ту, у которой выше конверсия.
             </div>
           )}
-        </Card>
-      </div>
+        </Card></div>
 
-      {/* Preview column moved to the top — see beginning of EditorView */}
+        {/* Hint at the bottom */}
+        <div className="text-[11px] text-slate-400 text-center py-3">
+          Все настройки сохраняются автоматически как черновик
+        </div>
+      </div>
     </div>
   );
 }
@@ -2667,7 +2722,7 @@ function ListView({ showToast }) {
 }
 
 // ============ Templates Tab ============
-function TemplatesView({ showToast }) {
+function TemplatesView({ showToast, onUseTemplate }) {
   const [activeCategory, setActiveCategory] = useState('all');
 
   const categories = [
@@ -2839,7 +2894,10 @@ function TemplatesView({ showToast }) {
               <div className="flex items-center justify-between mt-3">
                 <div className="text-[10px] text-slate-400">Использовали {t.uses} раз</div>
                 <button
-                  onClick={() => showToast(`Шаблон «${t.name}» загружен в редактор. Все поля заполнены — отредактируйте под себя.`)}
+                  onClick={() => {
+                    if (onUseTemplate) onUseTemplate(t);
+                    else showToast(`Шаблон «${t.name}» загружен в редактор.`);
+                  }}
                   className="px-3 py-1 text-xs font-semibold text-blue-600 bg-blue-50 rounded-md hover:bg-blue-600 hover:text-white transition"
                 >
                   Использовать
@@ -3116,112 +3174,411 @@ function SettingsPanel({ onClose }) {
   );
 }
 
+// ============ Add-story choice modal ============
+// Открывается над основной СРМ при нажатии «Добавить историю».
+// Предлагает: выбрать шаблон или создать с нуля.
+function AddChoiceModal({ onClose, onPickNew, onPickTemplate }) {
+  const [stage, setStage] = useState('choice'); // 'choice' | 'templates'
+
+  const popularTemplates = [
+    { id: 1, cat: 'urgent', name: 'Срочные смены — повышенная ставка', desc: 'Горящие вакансии с доплатой. Кнопка записи.', cover: 'bg-gradient-to-br from-orange-500 to-red-600', icon: '🔥', title: 'Срочно нужны люди в Москве!', body: 'У ВкусВилла на складе в Хамовниках есть смены сегодня и завтра. Ставка 2500 ₽ + 500 ₽ от РР. Нажми «Записаться».', hasContact: true, hasPoll: false, hasCopay: true, uses: 47 },
+    { id: 2, cat: 'urgent', name: 'Завтрашние смены (за день)', desc: 'За сутки до даты — список открытых смен', cover: 'bg-gradient-to-br from-amber-500 to-orange-600', icon: '⏰', title: 'Смены на завтра', body: 'Завтра у партнёров 12 открытых смен. Ставки от 2200 ₽. Локации в описании.', hasContact: true, hasPoll: false, hasCopay: false, uses: 31 },
+    { id: 3, cat: 'polls', name: 'Опрос: «Откуда узнали»', desc: 'CustDev. 5 вариантов + «другое»', cover: 'bg-gradient-to-br from-violet-500 to-purple-600', icon: '📊', title: 'Откуда вы о нас узнали?', body: 'Помогите нам стать лучше — это займёт 5 секунд. Одно нажатие.', hasContact: false, hasPoll: true, hasCopay: false, uses: 18 },
+    { id: 5, cat: 'promo', name: 'Реферальная программа', desc: 'Приведи друга — +2000 ₽', cover: 'bg-gradient-to-br from-emerald-500 to-teal-600', icon: '🎁', title: 'Приведи друга — получи 2000 ₽', body: 'Поделись приложением с друзьями. За каждого, кто выполнит первую смену, начислим 2000 ₽ на карту.', hasContact: false, hasPoll: false, hasCopay: false, uses: 24 },
+    { id: 8, cat: 'onboarding', name: 'Первая смена — инструкция', desc: 'Для новичков — что делать в день смены', cover: 'bg-gradient-to-br from-blue-500 to-indigo-600', icon: '📚', title: 'Как пройдёт ваша первая смена', body: 'Подойдите за 15 минут до начала. Возьмите паспорт. Менеджер встретит у входа и покажет, что делать.', hasContact: true, hasPoll: false, hasCopay: false, uses: 56 },
+    { id: 9, cat: 'onboarding', name: 'Что взять с собой', desc: 'Чек-лист перед сменой', cover: 'bg-gradient-to-br from-slate-600 to-slate-800', icon: '✅', title: 'Чек-лист на смену', body: 'Паспорт, СНИЛС, ИНН, рабочая обувь, удобная одежда. Зарядка для телефона — на всякий случай.', hasContact: false, hasPoll: false, hasCopay: false, uses: 41 }
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-start justify-center p-4 overflow-y-auto" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full my-8 overflow-hidden text-slate-800"
+        style={{ maxWidth: stage === 'choice' ? 560 : 920 }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header — оформлен как в текущей СРМ */}
+        <div className="px-6 py-4 bg-blue-600 text-white flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            {stage === 'templates' && (
+              <button onClick={() => setStage('choice')} className="p-1 hover:bg-white/15 rounded-lg" title="Назад">
+                <ChevronRight size={16} className="rotate-180" />
+              </button>
+            )}
+            <div className="font-bold text-base">{stage === 'choice' ? 'Добавление истории' : 'Выбор шаблона'}</div>
+          </div>
+          <button onClick={onClose} className="p-1.5 hover:bg-white/15 rounded-lg">
+            <X size={18} />
+          </button>
+        </div>
+
+        {stage === 'choice' && (
+          <div className="p-6">
+            <div className="text-sm text-slate-600 mb-4">Как создать новую сторис?</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Template card */}
+              <button
+                onClick={() => setStage('templates')}
+                className="text-left bg-white border-2 border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 rounded-xl p-5 transition group"
+              >
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white mb-3 group-hover:scale-105 transition">
+                  <Sparkles size={20} />
+                </div>
+                <div className="font-bold text-sm text-slate-800 mb-1">Выбрать шаблон</div>
+                <div className="text-xs text-slate-500 leading-snug">Готовые конструкции — текст, кнопки, опрос. Часто используемые настройки уже включены.</div>
+                <div className="mt-3 text-[11px] text-blue-600 font-semibold flex items-center gap-1">
+                  Открыть галерею <ChevronRight size={12} />
+                </div>
+              </button>
+
+              {/* Blank card */}
+              <button
+                onClick={onPickNew}
+                className="text-left bg-white border-2 border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 rounded-xl p-5 transition group"
+              >
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white mb-3 group-hover:scale-105 transition">
+                  <Plus size={20} />
+                </div>
+                <div className="font-bold text-sm text-slate-800 mb-1">Создать новую историю</div>
+                <div className="text-xs text-slate-500 leading-snug">Пустая форма — все поля и настройки заполняются вручную с нуля.</div>
+                <div className="mt-3 text-[11px] text-blue-600 font-semibold flex items-center gap-1">
+                  Открыть редактор <ChevronRight size={12} />
+                </div>
+              </button>
+            </div>
+
+            <div className="mt-4 flex items-start gap-2 text-[11px] text-slate-500 bg-slate-50 rounded-lg p-2.5">
+              <AlertCircle size={12} className="flex-shrink-0 mt-0.5" />
+              <span>В обоих режимах справа — настройки, слева — превью. Можно менять любую часть, шаблон не блокирует редактирование.</span>
+            </div>
+          </div>
+        )}
+
+        {stage === 'templates' && (
+          <div className="p-6 max-h-[70vh] overflow-y-auto">
+            <div className="text-sm text-slate-600 mb-4">
+              Выберите готовый шаблон. Часто используемые настройки (реакции, авто-снятие, таргетинг по Москве) уже проставлены — отредактируйте под себя.
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {popularTemplates.map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => onPickTemplate(t)}
+                  className="text-left bg-white border border-slate-200 hover:border-blue-400 hover:shadow-md rounded-xl overflow-hidden transition group"
+                >
+                  <div className={`${t.cover} aspect-[4/3] relative flex flex-col p-2.5 overflow-hidden`}>
+                    <div className="flex items-start justify-between mb-auto">
+                      <div className="w-5 h-5 rounded-full bg-white/95 flex items-center justify-center text-[9px] font-bold text-slate-700">РР</div>
+                      <div className="text-xl">{t.icon}</div>
+                    </div>
+                    <div className="text-white text-[11px] font-bold leading-tight drop-shadow line-clamp-2">{t.title}</div>
+                  </div>
+                  <div className="p-2.5">
+                    <div className="text-xs font-semibold text-slate-800 truncate">{t.name}</div>
+                    <div className="text-[10px] text-slate-500 mt-0.5 line-clamp-2 leading-snug">{t.desc}</div>
+                    <div className="mt-2 flex items-center justify-between">
+                      <div className="text-[10px] text-slate-400">{t.uses} использ.</div>
+                      <div className="text-[11px] font-semibold text-blue-600 group-hover:text-blue-700 flex items-center gap-0.5">
+                        Выбрать <ChevronRight size={11} />
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============ Editor overlay — раскрывается над основной СРМ ============
+function EditorOverlay({ mode, templateData, onClose, showToast }) {
+  return (
+    <div className="fixed inset-0 bg-slate-900/50 z-40 flex items-start justify-center overflow-y-auto">
+      <div
+        className="bg-slate-50 w-full max-w-[1400px] my-4 mx-2 sm:mx-4 rounded-2xl shadow-2xl overflow-hidden border border-slate-200"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Modal header — like the existing CRM modal style */}
+        <div className="px-6 py-4 bg-blue-600 text-white flex items-center justify-between sticky top-0 z-30">
+          <div className="flex items-center gap-3">
+            <div className="font-bold text-base">
+              {mode === 'template' ? `Создание истории по шаблону${templateData?.name ? ` «${templateData.name}»` : ''}` : 'Создание новой истории'}
+            </div>
+            <span className="px-2 py-0.5 bg-amber-200 text-amber-900 rounded-full text-[10px] font-bold uppercase tracking-wide">Черновик</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => showToast('Сохранено в черновики')} className="px-3 py-1.5 text-xs font-medium text-white bg-white/15 hover:bg-white/25 rounded-lg flex items-center gap-1.5">
+              <Save size={14} /> Черновик
+            </button>
+            <button onClick={() => { showToast('Сторис опубликована'); onClose(); }} className="px-3 py-1.5 text-xs font-bold text-blue-700 bg-white rounded-lg hover:bg-slate-100 flex items-center gap-1.5">
+              <Zap size={14} /> Опубликовать
+            </button>
+            <button onClick={onClose} className="p-1.5 hover:bg-white/15 rounded-lg" title="Закрыть">
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+
+        {/* Editor body */}
+        <div className="max-h-[calc(100vh-100px)] overflow-y-auto">
+          <EditorView mode={mode} templateData={templateData} onClose={onClose} showToast={showToast} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ List preview row — мини-статистика прошлых сторис, видна на главном экране ============
+function PastStoriesStatsBar() {
+  const stats = [
+    { l: 'Активных сейчас', v: '3', d: '+1 за неделю', color: 'emerald' },
+    { l: 'Просмотров за 7 дней', v: '184 320', d: '+12.4%', color: 'blue' },
+    { l: 'Средний CTR', v: '14.8%', d: '+1.2 п.п.', color: 'violet' },
+    { l: 'Кликов за 7 дней', v: '27 280', d: '+8.7%', color: 'amber' }
+  ];
+  const colors = {
+    emerald: 'from-emerald-50 to-white border-emerald-200 text-emerald-700',
+    blue: 'from-blue-50 to-white border-blue-200 text-blue-700',
+    violet: 'from-violet-50 to-white border-violet-200 text-violet-700',
+    amber: 'from-amber-50 to-white border-amber-200 text-amber-700'
+  };
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {stats.map((s, i) => (
+        <div key={i} className={`bg-gradient-to-br ${colors[s.color]} border rounded-xl p-3`}>
+          <div className="text-[10px] uppercase tracking-wider font-semibold opacity-70">{s.l}</div>
+          <div className="text-xl font-bold tabular-nums mt-1">{s.v}</div>
+          <div className="text-[11px] opacity-70 mt-0.5">{s.d}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function StoriesAdmin() {
-  const [activeTab, setActiveTab] = useState('editor');
+
+  const [activeTab, setActiveTab] = useState('list'); // По умолчанию — список с прошлой статистикой
   const [toast, setToast] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  // Modal flow: «Добавить историю» → выбор → редактор-оверлей
+  const [addChoiceOpen, setAddChoiceOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorMode, setEditorMode] = useState('new'); // 'new' | 'template'
+  const [editorTemplate, setEditorTemplate] = useState(null);
+
   const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(''), 3000);
   };
 
+  const openEditorBlank = () => {
+    setEditorMode('new');
+    setEditorTemplate(null);
+    setAddChoiceOpen(false);
+    setEditorOpen(true);
+  };
+  const openEditorWithTemplate = (tpl) => {
+    setEditorMode('template');
+    setEditorTemplate(tpl);
+    setAddChoiceOpen(false);
+    setEditorOpen(true);
+  };
+
   const tabs = [
-    { id: 'editor', label: 'Редактор', icon: <Edit3 size={15} /> },
     { id: 'list', label: 'Все сторис', icon: <Layers size={15} /> },
-    { id: 'analytics', label: 'Аналитика', icon: <BarChart3 size={15} /> },
     { id: 'templates', label: 'Шаблоны', icon: <Sparkles size={15} /> }
   ];
 
+  // Боковая навигация — повторяет реальную СРМ Рабочие руки (handswork.pro)
+  const navItems = [
+    { l: 'Заявки', icon: '📋' },
+    { l: 'Этапы', icon: '🪜' },
+    { l: 'Клиенты', icon: '👥' },
+    { l: 'Исполнители', icon: '👷' },
+    { l: 'Пользователи', icon: '🧑' },
+    { l: 'Риски бизнеса', icon: '⚠️', dot: true },
+    { l: 'Рекрутинг исполнителей', icon: '🎯', dot: true },
+    { l: 'Вахта', icon: '🏗️' },
+    { l: 'Выгрузки', icon: '📤' },
+    { l: 'Подготовка договоров', icon: '📝' },
+    { l: 'Интеграции', icon: '🔌' },
+    { l: 'Документы', icon: '📑' },
+    { l: 'Новости и обновления', icon: '📰' },
+    { l: 'Инструменты администратора', icon: '⚙️', dot: true },
+    {
+      l: 'Управление приложением', icon: '📲', expanded: true,
+      children: [
+        { l: 'Акции' },
+        { l: 'Оповещения' },
+        { l: 'Сторис', active: true },
+        { l: 'Новости' },
+        { l: 'Инструкции' }
+      ]
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-slate-50" style={{ fontFamily: 'ui-sans-serif, system-ui, -apple-system, sans-serif' }}>
-      {/* Header */}
-      <header className="bg-gradient-to-r from-blue-800 to-blue-900 text-white relative">
-        <div className="px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-white/15 backdrop-blur rounded-lg flex items-center justify-center font-bold text-sm">РР</div>
-            <div>
-              <div className="font-bold text-sm leading-none">Рабочие руки · ERP</div>
-              <div className="text-[11px] text-blue-200 mt-0.5">Управление сторис</div>
-            </div>
+    <div className="min-h-screen bg-slate-100" style={{ fontFamily: 'ui-sans-serif, system-ui, -apple-system, sans-serif' }}>
+      {/* Top bar — узкая синяя шапка как в реальной СРМ */}
+      <header className="bg-blue-600 text-white h-12 flex items-center px-3 fixed top-0 left-0 right-0 z-30 shadow-sm">
+        <button className="p-2 hover:bg-white/10 rounded" title="Свернуть/развернуть меню">
+          {/* hamburger icon заменим на двойную стрелку как в скрине */}
+          <span className="block text-white text-base leading-none">‖</span>
+        </button>
+        <div className="flex-1" />
+        <div className="text-xs text-white/90 mr-3 hidden sm:block">Чеков: 0 | Статусов: 0</div>
+        {/* Колокольчик скрываем при открытом редакторе */}
+        {!editorOpen && (
+          <button
+            onClick={() => { setShowNotifications(!showNotifications); }}
+            className="relative p-2 hover:bg-white/10 rounded"
+            title="Уведомления"
+          >
+            <Bell size={18} />
+            <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-bold px-1 py-0.5 rounded leading-none">13256</span>
+          </button>
+        )}
+        {showNotifications && !editorOpen && (
+          <div className="relative">
+            <NotificationsPanel onClose={() => setShowNotifications(false)} />
           </div>
-          <div className="flex items-center gap-2 relative">
-            <div className="relative">
-              <button
-                onClick={() => { setShowNotifications(!showNotifications); setShowSettings(false); }}
-                className={`p-2 rounded-lg transition relative ${showNotifications ? 'bg-white/20' : 'hover:bg-white/10'}`}
-                title="Уведомления"
-              >
-                <Bell size={16} />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-blue-800" />
-              </button>
-              {showNotifications && <NotificationsPanel onClose={() => setShowNotifications(false)} />}
-            </div>
-            <button
-              onClick={() => { setShowSettings(true); setShowNotifications(false); }}
-              className="p-2 hover:bg-white/10 rounded-lg transition"
-              title="Настройки"
-            >
-              <Settings size={16} />
-            </button>
-            <div className="w-8 h-8 bg-white/15 rounded-full flex items-center justify-center text-xs font-semibold" title="Мария Куликова, маркетолог">МК</div>
-          </div>
-        </div>
-        {/* Tabs */}
-        <div className="px-6 flex gap-1 overflow-x-auto">
-          {tabs.map(t => (
-            <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id)}
-              className={`px-4 py-2.5 text-sm font-medium flex items-center gap-2 whitespace-nowrap border-b-2 transition ${
-                activeTab === t.id
-                  ? 'border-white text-white'
-                  : 'border-transparent text-blue-200 hover:text-white'
-              }`}
-            >
-              {t.icon}{t.label}
-            </button>
-          ))}
-        </div>
+        )}
       </header>
 
-      {/* Editor toolbar */}
-      {activeTab === 'editor' && (
-        <div className="bg-white border-b border-slate-200 px-6 py-3">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-2 text-sm flex-wrap">
-              <span className="text-slate-500">Сторисы /</span>
-              <span className="font-semibold text-slate-800">Срочные смены в Москве — оплата х1.5</span>
-              <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">Черновик</span>
-              <span className="text-slate-400 text-xs">· Изменено 5 минут назад</span>
+      {/* Sidebar — белая, с профилем и навигацией */}
+      <aside className="fixed top-12 left-0 bottom-0 w-[230px] bg-white border-r border-slate-200 flex flex-col z-20 overflow-hidden">
+        {/* User profile — скрывается при открытии редактора */}
+        {!editorOpen && (
+          <div className="px-3 py-3 border-b border-slate-200 flex items-start gap-2.5">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-300 to-slate-500 flex-shrink-0 flex items-center justify-center text-white text-[10px] font-bold">РР</div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-bold text-slate-800 truncate">Азамат Псеунов</div>
+              <div className="text-[11px] text-slate-500">+7 (925) 716-52-80</div>
+              <a className="text-[11px] text-blue-600 hover:underline cursor-pointer">Выйти</a>
             </div>
-            <div className="flex gap-2 flex-wrap">
-              <button onClick={() => showToast('Открыта история версий')} className="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-1.5">
-                <History size={14} /> История версий
-              </button>
-              <button onClick={() => showToast('Сторис продублирована')} className="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-1.5">
-                <Copy size={14} /> Дублировать
-              </button>
-              <button onClick={() => showToast('Сохранено в черновики')} className="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-1.5">
-                <Save size={14} /> Черновик
-              </button>
-              <button onClick={() => showToast('Сторис опубликована — охват ~1850 исполнителей')} className="px-4 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center gap-1.5 shadow-sm">
-                <Zap size={14} /> Опубликовать
-              </button>
+            <button className="text-slate-400 hover:text-slate-600 p-0.5">
+              <Edit3 size={11} />
+            </button>
+          </div>
+        )}
+
+        {/* Nav items */}
+        <nav className="flex-1 overflow-y-auto py-1">
+          {navItems.map((it, i) => (
+            <div key={i}>
+              <div className={`flex items-center gap-2 px-3 py-2 cursor-pointer ${it.expanded ? 'text-blue-600 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>
+                <span className="text-slate-400 text-sm w-4">{it.icon}</span>
+                <span className="flex-1 text-[12.5px] leading-tight">{it.l}</span>
+                {it.dot && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
+                {it.children && <ChevronDown size={12} className={`text-slate-400 transition ${it.expanded ? 'rotate-180' : ''}`} />}
+              </div>
+              {it.expanded && it.children && (
+                <div className="bg-slate-50/40">
+                  {it.children.map((c, ci) => (
+                    <div
+                      key={ci}
+                      className={`pl-10 pr-3 py-1.5 text-[12.5px] cursor-pointer ${
+                        c.active
+                          ? 'bg-sky-100 text-blue-700 font-semibold'
+                          : 'text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      {c.l}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+          ))}
+        </nav>
+
+        {/* Tech support */}
+        <div className="px-3 py-2.5 border-t border-slate-200 text-[10.5px] text-slate-500 leading-snug">
+          <div className="font-semibold text-slate-700 mb-0.5">Техническая поддержка:</div>
+          <div>С 6:00 до 00:00 мск</div>
+          <div className="mt-0.5">тел: <a className="text-blue-600 underline">+7 925 716-44-78</a></div>
+          <div className="mt-1 flex gap-1.5 items-center">
+            <span className="w-4 h-4 rounded bg-blue-500 text-white text-[8px] font-bold flex items-center justify-center">tg</span>
+            <span className="w-4 h-4 rounded-full bg-gradient-to-br from-fuchsia-500 to-orange-400" />
+          </div>
+          <div className="mt-1">email: <a className="text-blue-600 underline">help@handswork.net</a></div>
+        </div>
+      </aside>
+
+      {/* Main content — справа от sidebar */}
+      <main className="ml-[230px] mt-12">
+        {/* Action bar — кнопки + поиск, как в реальной СРМ */}
+        <div className="bg-white border-b border-slate-200 px-4 py-2.5 flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setAddChoiceOpen(true)}
+            className="px-3.5 py-1.5 text-[12px] font-bold uppercase tracking-wide text-white bg-blue-600 rounded hover:bg-blue-700 flex items-center gap-1.5"
+          >
+            <Plus size={13} /> Добавить историю
+          </button>
+          {/* Кнопка «Аналитика» — открывает полную аналитику */}
+          <button
+            onClick={() => setActiveTab(activeTab === 'analytics' ? 'list' : 'analytics')}
+            className={`px-3.5 py-1.5 text-[12px] font-bold uppercase tracking-wide rounded flex items-center gap-1.5 transition border ${
+              activeTab === 'analytics'
+                ? 'bg-violet-600 border-violet-600 text-white hover:bg-violet-700'
+                : 'bg-white border-slate-300 text-slate-700 hover:border-violet-400 hover:bg-violet-50 hover:text-violet-700'
+            }`}
+          >
+            <BarChart3 size={13} /> Аналитика
+          </button>
+          <div className="flex-1 min-w-[200px] relative">
+            <input
+              placeholder="Введите заголовок для поиска"
+              className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+            />
           </div>
         </div>
-      )}
 
-      {/* Content */}
-      <main className="max-w-[1400px] mx-auto">
-        {activeTab === 'editor' && <EditorView showToast={showToast} />}
-        {activeTab === 'list' && <ListView showToast={showToast} />}
-        {activeTab === 'analytics' && <AnalyticsView />}
-        {activeTab === 'templates' && <TemplatesView showToast={showToast} />}
+        {/* Content area */}
+        <div className="bg-white min-h-[calc(100vh-12rem)]">
+          {activeTab === 'list' && (
+            <div className="p-4 sm:p-5 space-y-5">
+              <PastStoriesStatsBar />
+              <ListView showToast={showToast} />
+            </div>
+          )}
+          {activeTab === 'analytics' && (
+            <div>
+              <div className="px-5 pt-3 pb-2 flex items-center gap-2">
+                <button
+                  onClick={() => setActiveTab('list')}
+                  className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                >
+                  <ChevronRight size={12} className="rotate-180" /> Назад к списку историй
+                </button>
+              </div>
+              <AnalyticsView />
+            </div>
+          )}
+        </div>
       </main>
 
-      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
+      {/* Choice modal — «Шаблон / Новая» над основной СРМ */}
+      {addChoiceOpen && (
+        <AddChoiceModal
+          onClose={() => setAddChoiceOpen(false)}
+          onPickNew={openEditorBlank}
+          onPickTemplate={openEditorWithTemplate}
+        />
+      )}
+
+      {/* Editor overlay — модальный редактор над СРМ */}
+      {editorOpen && (
+        <EditorOverlay
+          mode={editorMode}
+          templateData={editorTemplate}
+          onClose={() => setEditorOpen(false)}
+          showToast={showToast}
+        />
+      )}
 
       <Toast message={toast} onClose={() => setToast('')} />
     </div>
