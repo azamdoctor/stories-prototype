@@ -93,7 +93,7 @@ function PhonePreview({ title, description, links, hasContact, contacts, hasPoll
       </div>
 
       {/* Mode toggle */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-lg mx-auto mb-3" style={{ width: 280 }}>
+      <div className="flex gap-1 bg-slate-100 p-1 rounded-lg mx-auto mb-3" style={{ width: 240 }}>
         <button
           onClick={() => setPreviewMode('home')}
           className={`flex-1 py-1.5 rounded-md text-[11px] font-semibold transition ${
@@ -112,7 +112,7 @@ function PhonePreview({ title, description, links, hasContact, contacts, hasPoll
         </button>
       </div>
 
-      <div className="mx-auto" style={{ width: 280 }}>
+      <div className="mx-auto" style={{ width: 240 }}>
         <div className="bg-slate-900 rounded-[2.5rem] p-3 shadow-2xl">
           <div className="bg-white rounded-[2rem] overflow-hidden relative" style={{ aspectRatio: '9/19' }}>
             {previewMode === 'home' ? (
@@ -645,7 +645,9 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
   ];
 
   // Quick-access sections — щелчок переносит в нужную карточку настройки
+  // «Выделение сторис» (Срочно) первая — самая частая фича
   const quickSections = [
+    { id: 'sec-urgent', label: 'Срочно', icon: '⚡' },
     { id: 'sec-content', label: 'Контент', icon: '🖼️' },
     { id: 'sec-text', label: 'Текст', icon: '✏️' },
     { id: 'sec-links', label: 'Ссылки', icon: '🔗' },
@@ -654,7 +656,6 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
     { id: 'sec-targeting', label: 'Таргетинг', icon: '🎯' },
     { id: 'sec-copay', label: 'Доплата', icon: '💰' },
     { id: 'sec-reactions', label: 'Реакции', icon: '😊' },
-    { id: 'sec-urgent', label: 'Срочно', icon: '⚡' },
     { id: 'sec-abtest', label: 'A/B-тест', icon: '🧪' },
     { id: 'sec-deactivate', label: 'Авто-снятие', icon: '⏰' }
   ];
@@ -664,8 +665,9 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 p-6">
+    <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-5 p-5 items-start">
       {/* Preview column — СЛЕВА, sticky, всегда виден при скролле настроек */}
+      <div className="lg:sticky lg:top-3 lg:self-start lg:max-h-[calc(100vh-110px)] lg:overflow-y-auto no-scrollbar">
       <PhonePreview
         title={title}
         description={description}
@@ -684,6 +686,7 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
         pollUserAnswered={pollUserAnswered}
         setPollUserAnswered={setPollUserAnswered}
       />
+      </div>
 
       {/* Settings column — справа, скроллится */}
       <div className="space-y-5 min-w-0">
@@ -713,6 +716,45 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
             </div>
           </div>
         )}
+
+        {/* Urgency marking */}
+        <div id="sec-urgent"><Card title="Выделение сторис" icon={<Zap size={16} />} action={<Toggle on={isUrgent} onChange={setIsUrgent} />}>
+          {isUrgent ? (
+            <div className="space-y-3">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2.5">
+                <Zap size={16} className="text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <div className="text-sm font-bold text-red-800 mb-0.5">Срочная сторис</div>
+                  <div className="text-xs text-red-700 leading-snug">
+                    Кружочек получит пульсирующий красный обод и метку «Срочно». Всегда показывается первым в ряду. На иконке появится молния.
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 text-center">
+                {[
+                  { icon: '🔴', t: 'Пульсирующий красный обод', d: 'Анимация привлекает взгляд' },
+                  { icon: '⚡', t: 'Метка «Срочно» под кружком', d: 'Текстовый маркер' },
+                  { icon: '📌', t: 'Первая позиция в ряду', d: 'Независимо от времени публикации' }
+                ].map((f, i) => (
+                  <div key={i} className="bg-red-50 border border-red-100 rounded-lg p-2">
+                    <div className="text-xl mb-1">{f.icon}</div>
+                    <div className="text-[10px] font-semibold text-slate-800">{f.t}</div>
+                    <div className="text-[10px] text-slate-500 mt-0.5">{f.d}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="text-[11px] text-slate-500 bg-slate-50 rounded p-2.5">
+                После истечения срока (по таймеру авто-деактивации) метка «Срочно» снимается автоматически — кружочек тухнет в режим обычного просмотренного.
+              </div>
+            </div>
+          ) : (
+            <div className="text-xs text-slate-500">
+              Обычная сторис показывается в стандартном порядке, без анимации. Включите, если нужно срочно привлечь внимание — горящие вакансии, дедлайны, важные изменения.
+            </div>
+          )}
+        </Card></div>
 
         {/* Cover & content */}
         <div id="sec-content"><Card title="Контент сторис" icon={<ImageIcon size={16} />}>
@@ -1809,44 +1851,7 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
           )}
         </Card></div>
 
-        {/* Urgency marking */}
-        <div id="sec-urgent"><Card title="Выделение сторис" icon={<Zap size={16} />} action={<Toggle on={isUrgent} onChange={setIsUrgent} />}>
-          {isUrgent ? (
-            <div className="space-y-3">
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2.5">
-                <Zap size={16} className="text-red-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <div className="text-sm font-bold text-red-800 mb-0.5">Срочная сторис</div>
-                  <div className="text-xs text-red-700 leading-snug">
-                    Кружочек получит пульсирующий красный обод и метку «Срочно». Всегда показывается первым в ряду. На иконке появится молния.
-                  </div>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-3 gap-2 text-center">
-                {[
-                  { icon: '🔴', t: 'Пульсирующий красный обод', d: 'Анимация привлекает взгляд' },
-                  { icon: '⚡', t: 'Метка «Срочно» под кружком', d: 'Текстовый маркер' },
-                  { icon: '📌', t: 'Первая позиция в ряду', d: 'Независимо от времени публикации' }
-                ].map((f, i) => (
-                  <div key={i} className="bg-red-50 border border-red-100 rounded-lg p-2">
-                    <div className="text-xl mb-1">{f.icon}</div>
-                    <div className="text-[10px] font-semibold text-slate-800">{f.t}</div>
-                    <div className="text-[10px] text-slate-500 mt-0.5">{f.d}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="text-[11px] text-slate-500 bg-slate-50 rounded p-2.5">
-                После истечения срока (по таймеру авто-деактивации) метка «Срочно» снимается автоматически — кружочек тухнет в режим обычного просмотренного.
-              </div>
-            </div>
-          ) : (
-            <div className="text-xs text-slate-500">
-              Обычная сторис показывается в стандартном порядке, без анимации. Включите, если нужно срочно привлечь внимание — горящие вакансии, дедлайны, важные изменения.
-            </div>
-          )}
-        </Card></div>
 
         {/* A/B test — with thumbnails */}
         <div id="sec-abtest"><Card title="A/B-тест" icon={<Layers size={16} />} action={<Toggle on={abTest} onChange={setAbTest} />}>
@@ -2477,6 +2482,8 @@ function UsersTable() {
 function ListView({ showToast }) {
   const [search, setSearch] = useState('');
   const [storyOrder, setStoryOrder] = useState([1, 2, 3, 4, 5, 6]); // story IDs in display order
+  // Управление порядком и ряд кружочков скрыты по умолчанию — раскрываются по клику
+  const [showOrderControls, setShowOrderControls] = useState(false);
 
   const statusMeta = {
     active: { l: 'Активна', c: 'bg-emerald-100 text-emerald-700' },
@@ -2523,6 +2530,23 @@ function ListView({ showToast }) {
   return (
     <div className="p-4 sm:p-6 space-y-5">
 
+      {/* Toggle: показать/скрыть управление кружочками и порядком */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <button
+          onClick={() => setShowOrderControls(v => !v)}
+          className="w-full px-5 py-3 flex items-center justify-between hover:bg-slate-50 transition"
+        >
+          <div className="flex items-center gap-2 text-slate-700">
+            <GripVertical size={14} className="text-slate-400" />
+            <span className="font-semibold text-sm">Ряд кружочков и управление порядком</span>
+            <span className="text-[11px] text-slate-500">— раскрыть</span>
+          </div>
+          <ChevronDown size={16} className={`text-slate-400 transition ${showOrderControls ? 'rotate-180' : ''}`} />
+        </button>
+      </div>
+
+      {showOrderControls && (
+        <>
       {/* Circle row preview — "as seen on phone home screen" */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
@@ -2643,6 +2667,8 @@ function ListView({ showToast }) {
           })}
         </div>
       </div>
+        </>
+      )}
 
       {/* Full story list (all statuses) */}
       <div className="flex items-center gap-3 flex-wrap">
@@ -3321,8 +3347,8 @@ function EditorOverlay({ mode, templateData, onClose, showToast }) {
           </div>
         </div>
 
-        {/* Editor body */}
-        <div className="max-h-[calc(100vh-100px)] overflow-y-auto">
+        {/* Editor body — превью слева sticky, настройки справа скроллятся */}
+        <div className="max-h-[calc(100vh-90px)] overflow-y-auto">
           <EditorView mode={mode} templateData={templateData} onClose={onClose} showToast={showToast} />
         </div>
       </div>
@@ -3584,3 +3610,4 @@ export default function StoriesAdmin() {
     </div>
   );
 }
+
