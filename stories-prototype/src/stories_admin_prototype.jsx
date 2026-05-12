@@ -10,7 +10,8 @@ import {
   Upload, FileSpreadsheet, Star, ShieldCheck, UserX, UserPlus,
   Bold, Italic, Underline, List, Strikethrough, AlertCircle,
   Wallet, Coins, Briefcase, GripVertical, Code, ImagePlus,
-  CircleDollarSign, Percent, Calculator, Building2, Boxes
+  CircleDollarSign, Percent, Calculator, Building2, Boxes,
+  ShieldAlert, ThumbsUp, ThumbsDown, MessageSquare, ClipboardCheck
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -49,21 +50,103 @@ const skipRateData = [
   { sec: '7с+', remaining: 34 }
 ];
 
-const pollResults = [
-  { option: 'Через друзей и знакомых', votes: 487, pct: 42 },
-  { option: 'Реклама ВКонтакте', votes: 286, pct: 25 },
-  { option: 'Поиск в интернете', votes: 198, pct: 17 },
-  { option: 'Telegram-каналы', votes: 116, pct: 10 },
-  { option: 'Другое', votes: 70, pct: 6 }
-];
-
 const storyList = [
   { id: 1, title: 'Срочные смены в Москве — х1.5', status: 'active', views: 64200, ctr: '14.2%', city: 'Москва', cover: 'bg-gradient-to-br from-orange-400 to-rose-500' },
-  { id: 2, title: 'Откуда вы о нас узнали? (опрос)', status: 'active', views: 98180, ctr: '—', city: 'Все', cover: 'bg-gradient-to-br from-violet-500 to-indigo-600' },
+  { id: 2, title: 'Новые правила выплат', status: 'active', views: 98180, ctr: '12.4%', city: 'Все', cover: 'bg-gradient-to-br from-violet-500 to-indigo-600' },
   { id: 3, title: 'Новые объекты в Краснодаре', status: 'scheduled', views: 0, ctr: '—', city: 'Краснодар', cover: 'bg-gradient-to-br from-emerald-400 to-teal-600' },
   { id: 4, title: 'Реферальная программа +2000₽', status: 'active', views: 52410, ctr: '18.7%', city: 'Все', cover: 'bg-gradient-to-br from-amber-400 to-orange-500' },
   { id: 5, title: 'Инструкция по выходу на смену', status: 'archived', views: 168340, ctr: '8.1%', city: 'Все', cover: 'bg-gradient-to-br from-sky-400 to-blue-600' },
   { id: 6, title: 'Промо-кампания для новичков', status: 'draft', views: 0, ctr: '—', city: '—', cover: 'bg-gradient-to-br from-slate-300 to-slate-500' }
+];
+
+// Stories ожидающие верификации
+const pendingVerification = [
+  {
+    id: 101,
+    title: 'Срочно нужны курьеры в Москве',
+    description: 'Сегодня и завтра ставка 2800₽ + 500₽ от РР. Локации: Хамовники, Чертаново, ВДНХ.',
+    author: 'Анна Соколова',
+    authorRole: 'Маркетолог',
+    createdAt: '12.05.2026 09:14',
+    cover: 'bg-gradient-to-br from-orange-500 to-red-600',
+    hasContact: true, hasCopay: true,
+    targetCities: ['Москва'],
+    estimatedReach: 24580,
+    contentType: 'video',
+    contentDuration: 28
+  },
+  {
+    id: 102,
+    title: 'Реферальная программа: +2000₽ за друга',
+    description: 'Приведи друга — получи 2000₽ после его первой смены. Бонус начисляется автоматически.',
+    author: 'Михаил Иванов',
+    authorRole: 'Маркетолог',
+    createdAt: '12.05.2026 08:45',
+    cover: 'bg-gradient-to-br from-emerald-500 to-teal-600',
+    hasContact: false, hasCopay: false,
+    targetCities: ['Все города'],
+    estimatedReach: 142300,
+    contentType: 'image',
+    contentDuration: null
+  },
+  {
+    id: 103,
+    title: 'Новый объект — ВкусВилл Чертаново',
+    description: 'Открылся новый дарк-стор. Нужны сборщики заказов. Смены каждый день с 7 утра.',
+    author: 'Елена Смирнова',
+    authorRole: 'Контент-редактор',
+    createdAt: '11.05.2026 18:32',
+    cover: 'bg-gradient-to-br from-blue-500 to-indigo-600',
+    hasContact: true, hasCopay: false,
+    targetCities: ['Москва'],
+    estimatedReach: 18450,
+    contentType: 'image',
+    contentDuration: null
+  }
+];
+
+// История модерации (одобренные и отклонённые)
+const verificationHistory = [
+  {
+    id: 201,
+    title: 'Бонус +1000₽ за 5 смен',
+    author: 'Михаил Иванов',
+    decision: 'approved',
+    moderator: 'Алексей Дроздов',
+    decidedAt: '12.05.2026 07:22',
+    cover: 'bg-gradient-to-br from-fuchsia-500 to-pink-600'
+  },
+  {
+    id: 202,
+    title: 'Скидка в кафе для исполнителей',
+    author: 'Анна Соколова',
+    decision: 'rejected',
+    moderator: 'Алексей Дроздов',
+    decidedAt: '11.05.2026 16:45',
+    reasons: ['Нерелевантный контент', 'Не одобрена партнёрская интеграция'],
+    comment: 'Сначала согласуйте с юристами. Партнёр не подтвердил акцию.',
+    cover: 'bg-gradient-to-br from-amber-500 to-orange-500'
+  },
+  {
+    id: 203,
+    title: 'Срочные смены — Самокат',
+    author: 'Елена Смирнова',
+    decision: 'approved',
+    moderator: 'Мария Куликова',
+    decidedAt: '11.05.2026 12:10',
+    cover: 'bg-gradient-to-br from-pink-500 to-rose-600'
+  },
+  {
+    id: 204,
+    title: 'Конкурс лучших исполнителей мая',
+    author: 'Анна Соколова',
+    decision: 'rejected',
+    moderator: 'Мария Куликова',
+    decidedAt: '11.05.2026 10:30',
+    reasons: ['Орфографические ошибки в тексте', 'Низкое качество обложки'],
+    comment: 'Перезалейте изображение в высоком разрешении и проверьте текст по описанию.',
+    cover: 'bg-gradient-to-br from-violet-500 to-purple-600'
+  }
 ];
 
 const COLORS = ['#1976D2', '#42A5F5', '#7E57C2', '#26A69A', '#EF5350', '#FFA726'];
@@ -81,10 +164,8 @@ function Toast({ message, onClose }) {
 }
 
 // ============ Phone Preview ============
-function PhonePreview({ title, description, links, hasContact, contacts, hasPoll, polls, contentFile, coverColor, reactionsEnabled = true, customReactions = ['❤️','🔥','👍'], hasCopay, copay, isUrgent, pollUserAnswered, setPollUserAnswered }) {
+function PhonePreview({ title, description, links, hasContact, contacts, contentFile, coverColor, reactionsEnabled = true, customReactions = ['❤️','🔥','👍'], hasCopay, copay, isUrgent }) {
   const [previewMode, setPreviewMode] = useState('home'); // 'home' | 'story'
-  const firstPoll = polls && polls[0];
-  const userAnswer = firstPoll?.options?.[2] || 'Поиск в интернете';
 
   return (
     <div className="sticky top-6">
@@ -121,12 +202,10 @@ function PhonePreview({ title, description, links, hasContact, contacts, hasPoll
               <StoryFullscreenView
                 title={title} description={description} links={links}
                 hasContact={hasContact} contacts={contacts}
-                hasPoll={hasPoll} polls={polls} firstPoll={firstPoll}
                 contentFile={contentFile} coverColor={coverColor}
                 reactionsEnabled={reactionsEnabled} customReactions={customReactions}
                 hasCopay={hasCopay} copay={copay}
-                isUrgent={isUrgent} userAnswer={userAnswer}
-                pollUserAnswered={pollUserAnswered} setPollUserAnswered={setPollUserAnswered}
+                isUrgent={isUrgent}
               />
             )}
           </div>
@@ -135,19 +214,6 @@ function PhonePreview({ title, description, links, hasContact, contacts, hasPoll
 
       {/* Simulation controls below preview */}
       <div className="mt-3 space-y-1.5">
-        {previewMode === 'story' && hasPoll && (
-          <button
-            onClick={() => setPollUserAnswered && setPollUserAnswered(!pollUserAnswered)}
-            className={`w-full py-1.5 rounded-lg text-xs font-semibold border transition flex items-center justify-center gap-1.5 ${
-              pollUserAnswered
-                ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
-            }`}
-          >
-            {pollUserAnswered ? <CheckCircle2 size={12} /> : <Eye size={12} />}
-            {pollUserAnswered ? 'Симуляция: опрос пройден ✓' : 'Симулировать: ответить на опрос'}
-          </button>
-        )}
         <div className="text-center text-[10px] text-slate-400">
           {previewMode === 'home' ? 'Так выглядит главный экран приложения РР' : 'Так увидит открытую сторис исполнитель'}
         </div>
@@ -283,7 +349,7 @@ function HomeScreenView({ coverColor, isUrgent, title }) {
 }
 
 // ============ Story Fullscreen view ============
-function StoryFullscreenView({ title, description, links, hasContact, contacts, hasPoll, polls, firstPoll, contentFile, coverColor, reactionsEnabled, customReactions, hasCopay, copay, isUrgent, userAnswer, pollUserAnswered, setPollUserAnswered }) {
+function StoryFullscreenView({ title, description, links, hasContact, contacts, contentFile, coverColor, reactionsEnabled, customReactions, hasCopay, copay, isUrgent }) {
   return (
     <div className="absolute inset-0 bg-black overflow-hidden">
       {/* Status bar */}
@@ -326,51 +392,6 @@ function StoryFullscreenView({ title, description, links, hasContact, contacts, 
 
       {/* Story body */}
       <div className="absolute inset-0 flex flex-col justify-end p-4 z-10">
-        {hasPoll && firstPoll && firstPoll.question && (
-          <div className="mb-3 bg-white/95 backdrop-blur rounded-2xl p-3 shadow-lg">
-            {pollUserAnswered ? (
-              <div>
-                <div className="text-[10px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
-                  <CheckCircle2 size={11} className="text-emerald-600" /> Вы уже ответили
-                </div>
-                <div className="text-xs font-semibold text-slate-800 mb-2">{firstPoll.question}</div>
-                <div className="space-y-1">
-                  {firstPoll.options.filter(o => o.trim()).slice(0, 5).map((opt, i) => (
-                    <div key={i} className={`rounded-lg px-3 py-1.5 text-[11px] flex items-center justify-between ${
-                      opt === userAnswer ? 'bg-blue-100 text-blue-800 font-semibold border border-blue-200' : 'bg-slate-50 text-slate-500'
-                    }`}>
-                      <span className="flex items-center gap-1.5">
-                        {opt === userAnswer && <CheckCircle2 size={11} className="text-blue-600" />}
-                        {opt}
-                      </span>
-                      {opt === userAnswer && <span className="text-[9px] text-blue-600 font-bold">Ваш ответ</span>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="text-xs font-semibold text-slate-800 mb-2 flex items-center justify-between">
-                  <span>{firstPoll.question}</span>
-                  {polls.length > 1 && <span className="text-[10px] text-slate-400 ml-2">1/{polls.length}</span>}
-                </div>
-                <div className="space-y-1.5">
-                  {firstPoll.options.filter(o => o.trim()).slice(0, 5).map((opt, i) => (
-                    <div
-                      key={i}
-                      onClick={setPollUserAnswered ? () => setPollUserAnswered(true) : undefined}
-                      className="bg-blue-50 hover:bg-blue-100 rounded-lg px-3 py-1.5 text-[11px] text-slate-700 cursor-pointer flex items-center gap-2"
-                    >
-                      {firstPoll.type === 'multi' && <span className="w-3 h-3 border border-slate-300 rounded-sm" />}
-                      {opt}
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
         {title && (
           <div className="text-white font-bold text-lg leading-tight mb-1 drop-shadow-lg">{title}</div>
         )}
@@ -436,15 +457,6 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
   ] : [
     { type: 'call', label: 'Позвонить менеджеру', value: '' }
   ]);
-  const [hasPoll, setHasPoll] = useState(isTemplate ? !!t.hasPoll : false);
-  const [polls, setPolls] = useState(isTemplate && t.hasPoll ? [
-    { question: 'Откуда вы о нас узнали?', type: 'single', options: ['Через друзей', 'Реклама ВК', 'Поиск в интернете', 'Telegram-каналы', 'Другое'] }
-  ] : [
-    { question: '', type: 'single', options: ['', '', ''] }
-  ]);
-  const [pollProtection, setPollProtection] = useState({ delay: true, confirm: true, oneVote: true, randomize: true });
-  const [pollAudienceFilter, setPollAudienceFilter] = useState('all');
-  const [pollUserAnswered, setPollUserAnswered] = useState(false); // Simulation state
   const [hasCopay, setHasCopay] = useState(isTemplate ? !!t.hasCopay : false);
   const [copay, setCopay] = useState({ clientRate: 2500, bonus: 500, text: 'Доплата сразу на карту' });
   // Реакции — частая фича, по умолчанию on в шаблоне
@@ -457,53 +469,12 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
   const [targetPartners, setTargetPartners] = useState(isTemplate ? ['p1'] : []);
   const [targetSubPartner, setTargetSubPartner] = useState('Все объекты');
   const [quickSegment, setQuickSegment] = useState(null);
+  // Период для фильтра "Был в приложении"
+  const [wasInAppPeriod, setWasInAppPeriod] = useState('7d');
   const [targetMode, setTargetMode] = useState('filters');
   const [uploadedFile, setUploadedFile] = useState(null);
-  // ERP filters — mirror the actual ERP filter structure
-  const [erpFilters, setErpFilters] = useState({
-    // Основные сведения
-    registrationDateFrom: '',
-    citizenship: 'any', // any/RU/BY/KZ/UZ/KG/AM/TJ
-    gender: 'any', // any/M/F
-    ageFrom: 18,
-    ageTo: 65,
-    metroStation: '',
-    samozanyatStatus: 'active', // active/suspended/all
-    profession: 'any',
-    documentType: 'any', // passport_rf/foreign/patent
-    // Задания
-    completedFrom: 0,
-    completedTo: 3000,
-    completedPeriod: 'all',
-    // Клиент
-    clientObjectId: '',
-    blacklistedClient: '',
-    // Дополнительные
-    online: false,
-    emptyProfiles: false,
-    unpaidFineLastMonth: false,
-    notBanned: true,
-    vahta: false,
-    // Тэги
-    hasTags: [],
-    excludeTags: [],
-    // Активность
-    lastVisitDaysFrom: 0,
-    lastVisitDaysTo: 30,
-    paymentBan: 'any', // any/yes/no
-    // Рекрутер
-    source: 'any',
-    recruiter: 'any',
-    firstPaymentDate: '',
-    firstAssignmentDate: '',
-    lastCallDate: '',
-    mobileApp: 'any', // any/has_app/no_app
-    paymentDataVerified: 'any',
-    // Партнёрские
-    operator: 'any',
-    // (Партнёр уже выше как targetPartners)
-    minRating: 0, // 10-point
-  });
+  // Профессия — единственный фильтр, оставленный над расчётным охватом
+  const [profession, setProfession] = useState('Любая');
   const [autoDeactivate, setAutoDeactivate] = useState(isTemplate);
   const [autoDeactivateDate, setAutoDeactivateDate] = useState('2026-05-09T22:00');
   const [autoDeactivateOnBrokenLink, setAutoDeactivateOnBrokenLink] = useState(isTemplate);
@@ -535,9 +506,6 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
     { id: 'p7', name: 'ИП Хайруллин М.Р.', short: 'ИП Хайруллин' },
     { id: 'p8', name: 'ИП Соколов А.Е. (логистика)', short: 'ИП Соколов' },
   ];
-  const operators = ['Все операторы', 'Анна Петрова', 'Михаил Иванов', 'Елена Смирнова', 'Дмитрий Козлов'];
-  const recruiters = ['Любой', 'Анна П.', 'Сергей В.', 'Мария К.', 'Алексей Д.'];
-  const sources = ['Любой', 'ВКонтакте', 'Avito', 'HH.ru', 'Реферал', 'Telegram-канал', 'Поиск Google/Яндекс'];
   const professionList = ['Любая', 'Курьер', 'Складской работник', 'Уборщик', 'Грузчик', 'Кассир', 'Сборщик заказов', 'Комплектовщик'];
   const subPartners = ['Все объекты', 'Москва-Север', 'Москва-Юг', 'Дарк-стор Хамовники', 'РЦ Подольск'];
   const quickSegments = [
@@ -545,7 +513,15 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
     { v: 'less_5', l: 'Меньше 5 смен', icon: '🌱' },
     { v: 'ten_tasks', l: 'Выполнили 10 заданий', icon: '✅' },
     { v: 'experienced', l: '50+ смен', icon: '⭐' },
-    { v: 'sleeping', l: '«Спящие» (нет смен 30 дн.)', icon: '😴' }
+    { v: 'was_in_app', l: 'Был в приложении', icon: '📱', hasPeriod: true }
+  ];
+  // Варианты периода для фильтра «Был в приложении»
+  const wasInAppPeriods = [
+    { v: '24h', l: 'За 24 часа' },
+    { v: '7d', l: 'За 7 дней' },
+    { v: '14d', l: 'За 14 дней' },
+    { v: '30d', l: 'За 30 дней' },
+    { v: '90d', l: 'За 90 дней' }
   ];
   const allReactions = ['❤️', '🔥', '👍', '👎', '🤔', '💯', '⚡', '🎯', '✨', '💪', '🙌', '😎'];
   const messengerTypes = [
@@ -558,7 +534,7 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
 
   const addLink = () => {
     if (links.length >= 5) return showToast('Можно добавить до 5 ссылок');
-    setLinks([...links, { text: '', url: '', type: 'external' }]);
+    setLinks([...links, { text: '', url: 'app://', type: 'internal' }]);
   };
   const removeLink = (i) => setLinks(links.filter((_, idx) => idx !== i));
   const updateLink = (i, field, val) => setLinks(links.map((l, idx) => idx === i ? { ...l, [field]: val } : l));
@@ -579,22 +555,6 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
     }
     return { ...c, [field]: val };
   }));
-
-  const addPoll = () => {
-    if (polls.length >= 3) return showToast('Максимум 3 вопроса в одной сторис');
-    setPolls([...polls, { question: '', type: 'single', options: ['', '', ''] }]);
-  };
-  const removePoll = (i) => setPolls(polls.filter((_, idx) => idx !== i));
-  const updatePoll = (i, field, val) => setPolls(polls.map((p, idx) => idx === i ? { ...p, [field]: val } : p));
-  const updatePollOpt = (pi, oi, val) => setPolls(polls.map((p, idx) =>
-    idx === pi ? { ...p, options: p.options.map((o, j) => j === oi ? val : o) } : p
-  ));
-  const addPollOpt = (pi) => setPolls(polls.map((p, idx) =>
-    idx === pi ? (p.options.length < 5 ? { ...p, options: [...p.options, ''] } : p) : p
-  ));
-  const removePollOpt = (pi, oi) => setPolls(polls.map((p, idx) =>
-    idx === pi ? { ...p, options: p.options.filter((_, j) => j !== oi) } : p
-  ));
 
   const toggleCity = (c) => {
     if (targetCities.includes(c)) setTargetCities(targetCities.filter(x => x !== c));
@@ -652,7 +612,6 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
     { id: 'sec-text', label: 'Текст', icon: '✏️' },
     { id: 'sec-links', label: 'Ссылки', icon: '🔗' },
     { id: 'sec-contacts', label: 'Связь', icon: '📞' },
-    { id: 'sec-polls', label: 'Опрос', icon: '📊' },
     { id: 'sec-targeting', label: 'Таргетинг', icon: '🎯' },
     { id: 'sec-copay', label: 'Доплата', icon: '💰' },
     { id: 'sec-reactions', label: 'Реакции', icon: '😊' },
@@ -674,8 +633,6 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
         links={links}
         hasContact={hasContact}
         contacts={contacts}
-        hasPoll={hasPoll}
-        polls={polls}
         contentFile={contentFile}
         coverColor={abVariant === 'B' ? coverColorB : coverColor}
         reactionsEnabled={reactionsEnabled}
@@ -683,8 +640,6 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
         hasCopay={hasCopay}
         copay={copay}
         isUrgent={isUrgent}
-        pollUserAnswered={pollUserAnswered}
-        setPollUserAnswered={setPollUserAnswered}
       />
       </div>
 
@@ -935,15 +890,9 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
           <div className="space-y-3">
             {links.map((l, i) => (
               <div key={i} className="flex gap-2 items-start">
-                <select
-                  value={l.type}
-                  onChange={e => updateLink(i, 'type', e.target.value)}
-                  className="px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                  title="Тип ссылки"
-                >
-                  <option value="internal">📱 В приложении</option>
-                  <option value="external">🌐 Внешняя</option>
-                </select>
+                <span className="px-2 py-2 bg-blue-50 border border-blue-200 rounded-lg text-xs font-medium text-blue-700 whitespace-nowrap flex items-center gap-1">
+                  📱 В приложении
+                </span>
                 <input
                   value={l.text}
                   onChange={e => updateLink(i, 'text', e.target.value)}
@@ -953,7 +902,7 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
                 <input
                   value={l.url}
                   onChange={e => updateLink(i, 'url', e.target.value)}
-                  placeholder={l.type === 'internal' ? 'app://shifts/123' : 'https://...'}
+                  placeholder="app://shifts/123"
                   className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
                 />
                 <button onClick={() => removeLink(i)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
@@ -962,8 +911,9 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
               </div>
             ))}
           </div>
-          <div className="mt-3 text-[11px] text-slate-500 flex items-center gap-1.5">
-            <Hash size={11} /> UTM-метки добавятся автоматически при публикации
+          <div className="mt-3 text-[11px] text-slate-500 flex items-start gap-1.5 bg-blue-50 border border-blue-100 rounded-lg p-2.5">
+            <ShieldCheck size={12} className="text-blue-600 flex-shrink-0 mt-0.5" />
+            <span>В сторис доступны только <b>внутренние ссылки в приложении</b> (app://). Внешние ссылки запрещены — это исключает фишинг и накрутку, а исполнитель всегда остаётся в РР.</span>
           </div>
         </Card></div>
 
@@ -1028,156 +978,6 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
           )}
         </Card></div>
 
-        {/* Polls — multi-question */}
-        <div id="sec-polls"><Card
-          title={`Опросы (${polls.length}/3)`}
-          icon={<BarChart3 size={16} />}
-          action={<Toggle on={hasPoll} onChange={setHasPoll} />}
-        >
-          {hasPoll && (
-            <div className="space-y-4">
-              {polls.map((p, pi) => (
-                <div key={pi} className="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-xs font-bold text-slate-700 uppercase tracking-wider">Вопрос {pi + 1}</div>
-                    {polls.length > 1 && (
-                      <button onClick={() => removePoll(pi)} className="p-1 text-slate-400 hover:text-red-500 hover:bg-white rounded">
-                        <Trash2 size={13} />
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    {/* Question type */}
-                    <div className="flex gap-2">
-                      {[
-                        { v: 'single', l: 'Один ответ', i: '⚪' },
-                        { v: 'multi', l: 'Несколько ответов', i: '☑️' }
-                      ].map(t => (
-                        <button
-                          key={t.v}
-                          onClick={() => updatePoll(pi, 'type', t.v)}
-                          className={`px-2.5 py-1 rounded-md text-[11px] font-medium border transition ${
-                            p.type === t.v
-                              ? 'bg-blue-50 border-blue-500 text-blue-700'
-                              : 'bg-white border-slate-200 text-slate-600'
-                          }`}
-                        >
-                          {t.i} {t.l}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Question text */}
-                    <input
-                      value={p.question}
-                      onChange={e => updatePoll(pi, 'question', e.target.value)}
-                      placeholder="Текст вопроса"
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-                    />
-
-                    {/* Options */}
-                    <div className="space-y-1.5">
-                      {p.options.map((opt, oi) => (
-                        <div key={oi} className="flex items-center gap-2">
-                          <span className="w-6 text-xs text-slate-400">{oi + 1}.</span>
-                          <input
-                            value={opt}
-                            onChange={e => updatePollOpt(pi, oi, e.target.value)}
-                            placeholder={`Вариант ${oi + 1}`}
-                            className="flex-1 px-2 py-1.5 bg-white border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-                          />
-                          {p.options.length > 2 && (
-                            <button onClick={() => removePollOpt(pi, oi)} className="p-1 text-slate-300 hover:text-red-500">
-                              <X size={12} />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                      {p.options.length < 5 && (
-                        <button
-                          onClick={() => addPollOpt(pi)}
-                          className="text-xs text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 ml-7"
-                        >
-                          <Plus size={12} /> вариант
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {polls.length < 3 && (
-                <button
-                  onClick={addPoll}
-                  className="w-full py-2 border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50/30 rounded-lg text-xs font-semibold text-slate-600 hover:text-blue-700 transition flex items-center justify-center gap-1.5"
-                >
-                  <Plus size={14} /> Добавить вопрос (макс. 3)
-                </button>
-              )}
-
-              {/* Anti-fraud */}
-              <div className="bg-slate-50 rounded-lg p-3 space-y-2">
-                <div className="text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                  <ShieldCheck size={13} className="text-emerald-600" /> Защита от случайных и накрученных ответов
-                </div>
-
-                {/* One-time poll — always-on rule */}
-                <div className="flex items-start gap-2.5 bg-emerald-50 border border-emerald-200 rounded-lg p-2.5 mb-2">
-                  <CheckCircle2 size={14} className="text-emerald-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <div className="text-xs font-bold text-emerald-900">Опрос показывается только один раз</div>
-                    <div className="text-[11px] text-emerald-800 leading-snug">
-                      Исполнитель, который уже ответил, при следующем открытии сторис видит свой ответ выделенным (read-only) — но не может изменить. Те, кто увидел сторис, но не ответил — увидят опрос снова до 3 раз (с интервалом). Это системное правило, не отключается.
-                    </div>
-                  </div>
-                </div>
-                {[
-                  { k: 'delay', l: 'Опрос появляется через 1.5 сек', d: 'Кто свайпает дальше — не увидит' },
-                  { k: 'confirm', l: 'Подтверждение выбора', d: '«Вы выбрали X. Подтвердить?» — отсекает 80% случайных тапов' },
-                  { k: 'oneVote', l: 'Один ответ с устройства', d: 'Антифрод по device ID' },
-                  { k: 'randomize', l: 'Случайный порядок вариантов', d: 'У каждого свой — не работает «все жмут первый»' }
-                ].map(p => (
-                  <label key={p.k} className="flex items-start gap-2.5 cursor-pointer p-1.5 hover:bg-white rounded">
-                    <input
-                      type="checkbox"
-                      checked={pollProtection[p.k]}
-                      onChange={e => setPollProtection({ ...pollProtection, [p.k]: e.target.checked })}
-                      className="mt-0.5 w-4 h-4 accent-blue-600"
-                    />
-                    <div className="flex-1">
-                      <div className="text-xs font-medium text-slate-800">{p.l}</div>
-                      <div className="text-[11px] text-slate-500">{p.d}</div>
-                    </div>
-                  </label>
-                ))}
-              </div>
-
-              <Field label="Дополнительный фильтр: кому из увидевших задать вопрос">
-                <select
-                  value={pollAudienceFilter}
-                  onChange={e => setPollAudienceFilter(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-                >
-                  <option value="all">Всем, кто увидел сторис</option>
-                  <option value="newcomers">Только новичкам (&lt; 5 смен)</option>
-                  <option value="active">Только активным (&gt; 10 смен за месяц)</option>
-                  <option value="inactive">«Спящим» (нет смен 30+ дней)</option>
-                  <option value="experienced">Опытным (&gt; 50 смен)</option>
-                </select>
-              </Field>
-
-              <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-start gap-2">
-                <Download size={14} className="text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="text-xs text-blue-900">
-                  <div className="font-semibold mb-0.5">Экспорт респондентов в Excel</div>
-                  <div className="text-blue-800 leading-snug">Доступен во вкладке «Аналитика». Каждый вопрос — отдельный лист со своими ответами. Плюс лист «Кто увидел, но не прошёл».</div>
-                </div>
-              </div>
-            </div>
-          )}
-        </Card></div>
-
         {/* Targeting */}
         <div id="sec-targeting"><Card title="Таргетинг (кому показать)" icon={<Target size={16} />}>
           {/* Mode tabs */}
@@ -1212,9 +1012,40 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
                       }`}
                     >
                       <span>{s.icon}</span>{s.l}
+                      {s.v === 'was_in_app' && quickSegment === 'was_in_app' && (
+                        <span className="bg-white/25 px-1.5 py-0.5 rounded-full text-[10px] font-bold ml-0.5">
+                          {wasInAppPeriods.find(p => p.v === wasInAppPeriod)?.l}
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
+                {/* Период для фильтра "Был в приложении" */}
+                {quickSegment === 'was_in_app' && (
+                  <div className="mt-3 bg-violet-50 border border-violet-200 rounded-lg p-3">
+                    <div className="text-xs font-semibold text-violet-900 mb-2 flex items-center gap-1.5">
+                      <Clock size={12} /> За какой период исполнитель заходил в приложение?
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {wasInAppPeriods.map(p => (
+                        <button
+                          key={p.v}
+                          onClick={() => setWasInAppPeriod(p.v)}
+                          className={`px-3 py-1.5 rounded-md text-[11px] font-semibold border transition ${
+                            wasInAppPeriod === p.v
+                              ? 'bg-violet-600 border-violet-600 text-white'
+                              : 'bg-white border-violet-200 text-violet-700 hover:bg-violet-100'
+                          }`}
+                        >
+                          {p.l}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="text-[10px] text-violet-700 mt-2 leading-snug">
+                      Сторис увидят исполнители, которые открывали приложение РР в указанный период. Полезно для тёплой аудитории — они уже знают продукт.
+                    </div>
+                  </div>
+                )}
               </Field>
 
               {/* Cities */}
@@ -1309,8 +1140,8 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
               {/* Profession */}
               <Field label="Профессия">
                 <select
-                  value={erpFilters.profession}
-                  onChange={e => setErpFilters({ ...erpFilters, profession: e.target.value })}
+                  value={profession}
+                  onChange={e => setProfession(e.target.value)}
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
                 >
                   {professionList.map(p => <option key={p}>{p}</option>)}
@@ -1323,304 +1154,16 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
                 <span>Тип занятости: <b className="text-slate-700">только самозанятые</b> (системно зашит в платформу — другие типы не используются)</span>
               </div>
 
-              {/* ERP filters — accordion sections matching ERP UI */}
-              <div className="mt-4 pt-4 border-t border-slate-100">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                    <ShieldCheck size={13} className="text-blue-600" /> Расширенные фильтры из ERP
-                  </div>
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">База: 800 000 исполнителей</span>
-                </div>
-
-                <div className="space-y-2">
-                  {/* Section: Основные сведения */}
-                  <details className="bg-slate-50 border border-slate-200 rounded-lg group">
-                    <summary className="px-3 py-2.5 cursor-pointer flex items-center justify-between list-none">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-xs text-slate-800">📋 Основные сведения</span>
-                        <span className="text-[10px] text-slate-400">Дата регистрации · Гражданство · Пол · Возраст · Метро · Документ</span>
-                      </div>
-                      <ChevronRight size={12} className="text-slate-400 group-open:rotate-90 transition" />
-                    </summary>
-                    <div className="px-3 pb-3 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-2.5 border-t border-slate-200">
-                      <div>
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Дата регистрации (от)</label>
-                        <input type="date" value={erpFilters.registrationDateFrom}
-                          onChange={e => setErpFilters({ ...erpFilters, registrationDateFrom: e.target.value })}
-                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Гражданство</label>
-                        <select value={erpFilters.citizenship}
-                          onChange={e => setErpFilters({ ...erpFilters, citizenship: e.target.value })}
-                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
-                          <option value="any">Любое</option>
-                          <option value="RU">РФ</option>
-                          <option value="BY">Беларусь</option>
-                          <option value="KZ">Казахстан</option>
-                          <option value="UZ">Узбекистан</option>
-                          <option value="KG">Кыргызстан</option>
-                          <option value="AM">Армения</option>
-                          <option value="TJ">Таджикистан</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Пол</label>
-                        <select value={erpFilters.gender}
-                          onChange={e => setErpFilters({ ...erpFilters, gender: e.target.value })}
-                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
-                          <option value="any">Любой</option>
-                          <option value="M">Мужской</option>
-                          <option value="F">Женский</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Возраст ({erpFilters.ageFrom}–{erpFilters.ageTo})</label>
-                        <div className="flex items-center gap-1.5">
-                          <input type="number" min="14" max="80" value={erpFilters.ageFrom}
-                            onChange={e => setErpFilters({ ...erpFilters, ageFrom: +e.target.value })}
-                            className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
-                          <span className="text-slate-400 text-xs">—</span>
-                          <input type="number" min="14" max="80" value={erpFilters.ageTo}
-                            onChange={e => setErpFilters({ ...erpFilters, ageTo: +e.target.value })}
-                            className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Станция метро</label>
-                        <input type="text" placeholder="например: Хамовники"
-                          value={erpFilters.metroStation}
-                          onChange={e => setErpFilters({ ...erpFilters, metroStation: e.target.value })}
-                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Самозанятость</label>
-                        <select value={erpFilters.samozanyatStatus}
-                          onChange={e => setErpFilters({ ...erpFilters, samozanyatStatus: e.target.value })}
-                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
-                          <option value="active">Активная (по умолчанию)</option>
-                          <option value="suspended">Приостановлена</option>
-                          <option value="all">Любой статус</option>
-                        </select>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Тип документа</label>
-                        <select value={erpFilters.documentType}
-                          onChange={e => setErpFilters({ ...erpFilters, documentType: e.target.value })}
-                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
-                          <option value="any">Любой</option>
-                          <option value="passport_rf">Паспорт РФ</option>
-                          <option value="foreign">Иностранный паспорт</option>
-                          <option value="patent">Патент на работу</option>
-                          <option value="rvp">РВП</option>
-                          <option value="vnj">ВНЖ</option>
-                        </select>
-                      </div>
-                    </div>
-                  </details>
-
-                  {/* Section: Задания */}
-                  <details className="bg-slate-50 border border-slate-200 rounded-lg group">
-                    <summary className="px-3 py-2.5 cursor-pointer flex items-center justify-between list-none">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-xs text-slate-800">📊 Задания</span>
-                        <span className="text-[10px] text-slate-400">Выполнено за период · Диапазон</span>
-                      </div>
-                      <ChevronRight size={12} className="text-slate-400 group-open:rotate-90 transition" />
-                    </summary>
-                    <div className="px-3 pb-3 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-2.5 border-t border-slate-200">
-                      <div>
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Выполнено за период</label>
-                        <select value={erpFilters.completedPeriod}
-                          onChange={e => setErpFilters({ ...erpFilters, completedPeriod: e.target.value })}
-                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
-                          <option value="all">За всё время</option>
-                          <option value="7d">За 7 дней</option>
-                          <option value="30d">За 30 дней</option>
-                          <option value="90d">За 90 дней</option>
-                          <option value="365d">За год</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Кол-во смен ({erpFilters.completedFrom}–{erpFilters.completedTo})</label>
-                        <div className="flex items-center gap-1.5">
-                          <input type="number" min="0" value={erpFilters.completedFrom}
-                            onChange={e => setErpFilters({ ...erpFilters, completedFrom: +e.target.value })}
-                            className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
-                          <span className="text-slate-400 text-xs">—</span>
-                          <input type="number" min="0" value={erpFilters.completedTo}
-                            onChange={e => setErpFilters({ ...erpFilters, completedTo: +e.target.value })}
-                            className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
-                        </div>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Минимальный рейтинг (10-балльная шкала)</label>
-                        <div className="flex items-center gap-2">
-                          <input type="range" min="0" max="10" step="0.1"
-                            value={erpFilters.minRating}
-                            onChange={e => setErpFilters({ ...erpFilters, minRating: +e.target.value })}
-                            className="flex-1 accent-blue-600" />
-                          <span className="text-sm font-semibold text-slate-700 tabular-nums w-12 flex items-center gap-0.5">
-                            <Star size={12} className="text-amber-500 fill-amber-500" />{erpFilters.minRating.toFixed(1)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </details>
-
-                  {/* Section: Дополнительные */}
-                  <details className="bg-slate-50 border border-slate-200 rounded-lg group">
-                    <summary className="px-3 py-2.5 cursor-pointer flex items-center justify-between list-none">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-xs text-slate-800">⚙️ Дополнительные</span>
-                        <span className="text-[10px] text-slate-400">Онлайн · Не забанены · Штраф · Вахта</span>
-                      </div>
-                      <ChevronRight size={12} className="text-slate-400 group-open:rotate-90 transition" />
-                    </summary>
-                    <div className="px-3 pb-3 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-1.5 border-t border-slate-200">
-                      {[
-                        { k: 'online', l: 'Онлайн (сейчас в приложении)' },
-                        { k: 'emptyProfiles', l: 'Включая пустые профили' },
-                        { k: 'unpaidFineLastMonth', l: 'Неоплаченный штраф за последний месяц' },
-                        { k: 'notBanned', l: 'Только не забаненные' },
-                        { k: 'vahta', l: 'Открыт к вахте (междугородним сменам)' },
-                      ].map(f => (
-                        <label key={f.k} className="flex items-center gap-2 cursor-pointer p-1.5 hover:bg-white rounded-md">
-                          <input type="checkbox"
-                            checked={erpFilters[f.k]}
-                            onChange={e => setErpFilters({ ...erpFilters, [f.k]: e.target.checked })}
-                            className="w-3.5 h-3.5 accent-blue-600" />
-                          <span className="text-[11px] text-slate-700">{f.l}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </details>
-
-                  {/* Section: Активность */}
-                  <details className="bg-slate-50 border border-slate-200 rounded-lg group">
-                    <summary className="px-3 py-2.5 cursor-pointer flex items-center justify-between list-none">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-xs text-slate-800">🟢 Активность и платежи</span>
-                        <span className="text-[10px] text-slate-400">Заходил · Запрет оплаты · Тэги</span>
-                      </div>
-                      <ChevronRight size={12} className="text-slate-400 group-open:rotate-90 transition" />
-                    </summary>
-                    <div className="px-3 pb-3 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-2.5 border-t border-slate-200">
-                      <div className="sm:col-span-2">
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Заходил в последний раз ({erpFilters.lastVisitDaysFrom}–{erpFilters.lastVisitDaysTo} дн.)</label>
-                        <div className="flex items-center gap-1.5">
-                          <input type="number" min="0" value={erpFilters.lastVisitDaysFrom}
-                            onChange={e => setErpFilters({ ...erpFilters, lastVisitDaysFrom: +e.target.value })}
-                            className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
-                          <span className="text-slate-400 text-xs">—</span>
-                          <input type="number" min="0" value={erpFilters.lastVisitDaysTo}
-                            onChange={e => setErpFilters({ ...erpFilters, lastVisitDaysTo: +e.target.value })}
-                            className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Запрет оплаты</label>
-                        <select value={erpFilters.paymentBan}
-                          onChange={e => setErpFilters({ ...erpFilters, paymentBan: e.target.value })}
-                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
-                          <option value="any">Не учитывать</option>
-                          <option value="no">Без запрета (можно платить)</option>
-                          <option value="yes">С запретом (заблокирована оплата)</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Чёрный список (партнёр)</label>
-                        <select value={erpFilters.blacklistedClient}
-                          onChange={e => setErpFilters({ ...erpFilters, blacklistedClient: e.target.value })}
-                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
-                          <option value="">Не учитывать</option>
-                          {partners.map(p => <option key={p.id} value={p.id}>Не в ЧС: {p.short}</option>)}
-                        </select>
-                      </div>
-                    </div>
-                  </details>
-
-                  {/* Section: Рекрутер */}
-                  <details className="bg-slate-50 border border-slate-200 rounded-lg group">
-                    <summary className="px-3 py-2.5 cursor-pointer flex items-center justify-between list-none">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-xs text-slate-800">👤 Рекрутер</span>
-                        <span className="text-[10px] text-slate-400">Источник · Рекрутер · Верификация</span>
-                      </div>
-                      <ChevronRight size={12} className="text-slate-400 group-open:rotate-90 transition" />
-                    </summary>
-                    <div className="px-3 pb-3 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-2.5 border-t border-slate-200">
-                      <div>
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Источник привлечения</label>
-                        <select value={erpFilters.source}
-                          onChange={e => setErpFilters({ ...erpFilters, source: e.target.value })}
-                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
-                          {sources.map(s => <option key={s} value={s === 'Любой' ? 'any' : s}>{s}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Рекрутер (привлёк)</label>
-                        <select value={erpFilters.recruiter}
-                          onChange={e => setErpFilters({ ...erpFilters, recruiter: e.target.value })}
-                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
-                          {recruiters.map(r => <option key={r} value={r === 'Любой' ? 'any' : r}>{r}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Дата первой оплаты (от)</label>
-                        <input type="date" value={erpFilters.firstPaymentDate}
-                          onChange={e => setErpFilters({ ...erpFilters, firstPaymentDate: e.target.value })}
-                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Дата первого задания (от)</label>
-                        <input type="date" value={erpFilters.firstAssignmentDate}
-                          onChange={e => setErpFilters({ ...erpFilters, firstAssignmentDate: e.target.value })}
-                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs" />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Мобильное приложение</label>
-                        <select value={erpFilters.mobileApp}
-                          onChange={e => setErpFilters({ ...erpFilters, mobileApp: e.target.value })}
-                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
-                          <option value="any">Любое состояние</option>
-                          <option value="has_app">Установлено</option>
-                          <option value="no_app">Не установлено</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Верификация платёжных данных</label>
-                        <select value={erpFilters.paymentDataVerified}
-                          onChange={e => setErpFilters({ ...erpFilters, paymentDataVerified: e.target.value })}
-                          className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
-                          <option value="any">Не учитывать</option>
-                          <option value="verified">Верифицирована</option>
-                          <option value="not_verified">Не верифицирована</option>
-                        </select>
-                      </div>
-                    </div>
-                  </details>
-
-                  {/* Section: Партнёрские */}
-                  <details className="bg-slate-50 border border-slate-200 rounded-lg group">
-                    <summary className="px-3 py-2.5 cursor-pointer flex items-center justify-between list-none">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-xs text-slate-800">🤝 Партнёрские</span>
-                        <span className="text-[10px] text-slate-400">Оператор</span>
-                      </div>
-                      <ChevronRight size={12} className="text-slate-400 group-open:rotate-90 transition" />
-                    </summary>
-                    <div className="px-3 pb-3 pt-1 border-t border-slate-200">
-                      <label className="text-[10px] text-slate-600 font-medium block mb-0.5">Оператор обработки</label>
-                      <select value={erpFilters.operator}
-                        onChange={e => setErpFilters({ ...erpFilters, operator: e.target.value })}
-                        className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs">
-                        {operators.map(o => <option key={o} value={o === 'Все операторы' ? 'any' : o}>{o}</option>)}
-                      </select>
-                    </div>
-                  </details>
+              {/* Расширенные фильтры ERP полностью убраны по решению команды — оставлены только базовые таргетинги выше */}
+              <div className="mt-4 bg-slate-50 border border-slate-200 rounded-lg p-3 flex items-start gap-2 text-[11px] text-slate-600">
+                <ShieldCheck size={13} className="text-slate-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-semibold text-slate-700 mb-0.5">Расширенные фильтры из ERP отключены</div>
+                  <div className="leading-snug">Для сторис используются только базовые сегменты: город, партнёр/объект, профессия, быстрые сегменты и список из Excel. Это упрощает запуск и снижает риск ошибок.</div>
                 </div>
               </div>
+
+              {/* (старый блок ERP-аккордеонов удалён) */}
 
               {/* Reach estimate */}
               <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
@@ -1642,7 +1185,7 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
                 <>
                   <div
                     onClick={() => setUploadedFile({
-                      name: 'аудитория_май_спящие.xlsx',
+                      name: 'аудитория_май_активные.xlsx',
                       total: 12450,
                       matched: 10872,
                       notFound: 1578
@@ -1936,46 +1479,102 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
 
 // ============ Analytics Tab ============
 function AnalyticsView() {
+  // analyticsMode: 'overall' — общая статистика по всем сторис, 'single' — по конкретной сторис
+  const [analyticsMode, setAnalyticsMode] = useState('overall');
   const [selectedStory, setSelectedStory] = useState('Срочные смены в Москве — х1.5');
   const [storyContentType, setStoryContentType] = useState('video'); // 'video' | 'image'
 
+  // KPI данные для двух режимов
+  const overallKpis = {
+    views: '1 284 510',
+    uniqueViews: '742 380',
+    clicks: '184 960',
+    bookings: '32 893',
+    shifts: '24 175',
+    conv: '2.6%'
+  };
+  const singleKpis = {
+    views: '284 510',
+    uniqueViews: '198 240',
+    clicks: '38 960',
+    bookings: '6 893',
+    shifts: '5 175',
+    conv: '2.4%'
+  };
+  const kpi = analyticsMode === 'overall' ? overallKpis : singleKpis;
+
   return (
     <div className="p-6 space-y-6">
-      {/* Story selector */}
+      {/* Переключатель режимов: общая статистика / по сторис */}
+      <div className="bg-white border border-slate-200 rounded-xl p-1 inline-flex gap-1">
+        <button
+          onClick={() => setAnalyticsMode('overall')}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition ${
+            analyticsMode === 'overall' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'
+          }`}
+        >
+          <Layers size={14} /> Общая статистика
+        </button>
+        <button
+          onClick={() => setAnalyticsMode('single')}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition ${
+            analyticsMode === 'single' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'
+          }`}
+        >
+          <BarChart3 size={14} /> По конкретной сторис
+        </button>
+      </div>
+
+      {/* Story selector — только в режиме single */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-end gap-3 flex-wrap">
-          <div>
-            <div className="text-xs text-slate-500 mb-1">Сторис</div>
-            <select
-              value={selectedStory}
-              onChange={e => setSelectedStory(e.target.value)}
-              className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/30 min-w-[280px]"
-            >
-              {storyList.filter(s => s.status !== 'draft').map(s => <option key={s.id}>{s.title}</option>)}
-            </select>
-          </div>
-          {/* Demo: content-type toggle (in production this is set by story metadata) */}
-          <div>
-            <div className="text-xs text-slate-500 mb-1">Тип контента <span className="text-slate-400 normal-case">(демо)</span></div>
-            <div className="inline-flex bg-slate-100 p-0.5 rounded-lg">
-              <button
-                onClick={() => setStoryContentType('video')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5 ${
-                  storyContentType === 'video' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <Video size={12} /> Видео
-              </button>
-              <button
-                onClick={() => setStoryContentType('image')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5 ${
-                  storyContentType === 'image' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <ImageIcon size={12} /> Фото
-              </button>
+          {analyticsMode === 'single' && (
+            <>
+              <div>
+                <div className="text-xs text-slate-500 mb-1">Сторис</div>
+                <select
+                  value={selectedStory}
+                  onChange={e => setSelectedStory(e.target.value)}
+                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/30 min-w-[280px]"
+                >
+                  {storyList.filter(s => s.status !== 'draft').map(s => <option key={s.id}>{s.title}</option>)}
+                </select>
+              </div>
+              {/* Demo: content-type toggle */}
+              <div>
+                <div className="text-xs text-slate-500 mb-1">Тип контента <span className="text-slate-400 normal-case">(демо)</span></div>
+                <div className="inline-flex bg-slate-100 p-0.5 rounded-lg">
+                  <button
+                    onClick={() => setStoryContentType('video')}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5 ${
+                      storyContentType === 'video' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    <Video size={12} /> Видео
+                  </button>
+                  <button
+                    onClick={() => setStoryContentType('image')}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5 ${
+                      storyContentType === 'image' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    <ImageIcon size={12} /> Фото
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+          {analyticsMode === 'overall' && (
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-start gap-2.5 max-w-2xl">
+              <Layers size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <div className="text-sm font-bold text-blue-900">Сводка по всем активным сторис</div>
+                <div className="text-xs text-blue-800 leading-snug">
+                  Все KPI и графики ниже — агрегированные данные по {storyList.filter(s => s.status === 'active' || s.status === 'archived').length} сторис за выбранный период. Для разреза по одной сторис переключитесь в режим «По конкретной сторис».
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
         <div className="flex gap-2">
           <button className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-1.5">
@@ -1987,14 +1586,51 @@ function AnalyticsView() {
         </div>
       </div>
 
-      {/* KPI cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <KPICard label="Просмотры" value="284 510" delta={12.4} icon={<Eye size={16} />} color="blue" />
-        <KPICard label="Клики по ссылкам" value="38 960" delta={8.1} icon={<MousePointerClick size={16} />} color="violet" />
-        <KPICard label="Записи" value="6 893" delta={15.7} icon={<UserCheck size={16} />} color="emerald" />
-        <KPICard label="Вышли на смену" value="5 175" delta={-2.3} icon={<CheckCircle2 size={16} />} color="amber" />
-        <KPICard label="Конверсия V→Запись" value="2.4%" delta={3.4} icon={<TrendingUp size={16} />} color="rose" />
+      {/* KPI cards — добавлены "Уникальные просмотры" */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <KPICard label="Просмотры" value={kpi.views} delta={12.4} icon={<Eye size={16} />} color="blue" />
+        <KPICard label="Уникальные просмотры" value={kpi.uniqueViews} delta={9.8} icon={<UserCheck size={16} />} color="violet" hint="Каждый исполнитель учитывается только один раз" />
+        <KPICard label="Клики по ссылкам" value={kpi.clicks} delta={8.1} icon={<MousePointerClick size={16} />} color="emerald" />
+        <KPICard label="Записи" value={kpi.bookings} delta={15.7} icon={<UserPlus size={16} />} color="amber" />
+        <KPICard label="Вышли на смену" value={kpi.shifts} delta={-2.3} icon={<CheckCircle2 size={16} />} color="rose" />
+        <KPICard label="Конверсия V→Запись" value={kpi.conv} delta={3.4} icon={<TrendingUp size={16} />} color="blue" />
       </div>
+
+      {/* Дополнительная карточка — детализация уникальных просмотров */}
+      <Card title="Уникальные просмотры — детализация" icon={<UserCheck size={16} />}>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="bg-violet-50 border border-violet-200 rounded-lg p-3">
+            <div className="text-[10px] text-violet-700 uppercase tracking-wider font-semibold">Уникальных исполнителей</div>
+            <div className="text-2xl font-bold text-violet-800 tabular-nums mt-1">{kpi.uniqueViews}</div>
+            <div className="text-[10px] text-violet-600 mt-0.5">Учитываются только первые открытия</div>
+          </div>
+          <div className="bg-blue-50 border border-blue-100 rounded-lg p-3">
+            <div className="text-[10px] text-blue-700 uppercase tracking-wider font-semibold">Повторные просмотры</div>
+            <div className="text-2xl font-bold text-blue-800 tabular-nums mt-1">
+              {analyticsMode === 'overall' ? '542 130' : '86 270'}
+            </div>
+            <div className="text-[10px] text-blue-600 mt-0.5">Те же исполнители смотрят повторно</div>
+          </div>
+          <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-3">
+            <div className="text-[10px] text-emerald-700 uppercase tracking-wider font-semibold">Среднее на исполнителя</div>
+            <div className="text-2xl font-bold text-emerald-800 tabular-nums mt-1">
+              {analyticsMode === 'overall' ? '1.73' : '1.44'}
+            </div>
+            <div className="text-[10px] text-emerald-600 mt-0.5">просмотра/исполнитель</div>
+          </div>
+          <div className="bg-amber-50 border border-amber-100 rounded-lg p-3">
+            <div className="text-[10px] text-amber-700 uppercase tracking-wider font-semibold">Доля уникальных</div>
+            <div className="text-2xl font-bold text-amber-800 tabular-nums mt-1">
+              {analyticsMode === 'overall' ? '57.8%' : '69.7%'}
+            </div>
+            <div className="text-[10px] text-amber-600 mt-0.5">от общего числа просмотров</div>
+          </div>
+        </div>
+        <div className="mt-3 bg-slate-50 border border-slate-100 rounded-lg p-2.5 text-[11px] text-slate-600 flex items-start gap-2">
+          <ShieldCheck size={13} className="text-slate-400 flex-shrink-0 mt-0.5" />
+          <span><b>Уникальные просмотры</b> — это число исполнителей, открывших сторис хотя бы один раз. Если исполнитель открыл повторно — он не считается заново. Антифрод-метрика, ближе всего к реальному охвату.</span>
+        </div>
+      </Card>
 
       {/* Funnel */}
       <Card title="Воронка: от просмотра до выхода на смену" icon={<Layers size={16} />}>
@@ -2023,8 +1659,8 @@ function AnalyticsView() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        {/* Drop-off curve — only for video stories */}
-        {storyContentType === 'video' ? (
+        {/* Drop-off curve — only for video stories, и только в режиме single */}
+        {analyticsMode === 'single' && storyContentType === 'video' ? (
           <Card title="Кривая досмотра (drop-off)" icon={<TrendingUp size={16} />}>
             <div className="text-xs text-slate-600 mb-3">
               Сколько исполнителей оставалось в видео в каждую секунду. Резкий спад → улучшить этот момент.
@@ -2056,7 +1692,7 @@ function AnalyticsView() {
               ))}
             </div>
           </Card>
-        ) : (
+        ) : analyticsMode === 'single' ? (
           <Card title="Время на сторис" icon={<Clock size={16} />}>
             <div className="text-xs text-slate-600 mb-3">
               Для фото-сторис кривая досмотра неприменима — нет таймлайна. Вместо неё показываем медиану времени просмотра.
@@ -2079,6 +1715,28 @@ function AnalyticsView() {
               <ImageIcon size={13} className="text-slate-400 flex-shrink-0 mt-0.5" />
               <span>Эта сторис — фото. Кривая досмотра по секундам собирается только для видео.</span>
             </div>
+          </Card>
+        ) : (
+          // Режим overall: вместо кривой досмотра показываем топ сторис по уникальным просмотрам
+          <Card title="Топ сторис по уникальным просмотрам" icon={<TrendingUp size={16} />}>
+            <div className="space-y-2">
+              {[
+                { name: 'Инструкция по выходу на смену', uniq: 142340, color: 'bg-sky-500' },
+                { name: 'Новые правила выплат', uniq: 98180, color: 'bg-violet-500' },
+                { name: 'Срочные смены в Москве — х1.5', uniq: 64200, color: 'bg-orange-500' },
+                { name: 'Реферальная программа +2000₽', uniq: 52410, color: 'bg-amber-500' },
+                { name: 'Новые объекты в Краснодаре', uniq: 31250, color: 'bg-emerald-500' }
+              ].map((s, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="w-44 text-xs text-slate-700 font-medium truncate">{s.name}</div>
+                  <div className="flex-1 bg-slate-100 rounded-md overflow-hidden h-6">
+                    <div className={`${s.color} h-full rounded-md`} style={{ width: `${(s.uniq / 142340) * 100}%` }} />
+                  </div>
+                  <div className="w-20 text-right text-xs font-bold text-slate-700 tabular-nums">{s.uniq.toLocaleString('ru')}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 text-[11px] text-slate-500">Сортировка по числу уникальных исполнителей за выбранный период.</div>
           </Card>
         )}
 
@@ -2204,38 +1862,6 @@ function AnalyticsView() {
           </ResponsiveContainer>
         </Card>
 
-        {/* Poll results */}
-        <Card
-          title="Результаты опроса «Откуда узнали»"
-          icon={<BarChart3 size={16} />}
-          action={
-            <button
-              onClick={() => alert('Экспортирую CSV с полями: дата, город, категория, стаж, кол-во смен, ответ, ID пользователя')}
-              className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
-            >
-              <Download size={13} /> Excel
-            </button>
-          }
-        >
-          <div className="space-y-2.5">
-            {pollResults.map((p, i) => (
-              <div key={i}>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-700">{p.option}</span>
-                  <span className="text-slate-500 font-semibold">{p.votes} ({p.pct}%)</span>
-                </div>
-                <div className="bg-slate-100 rounded-full h-2 overflow-hidden">
-                  <div className="h-full rounded-full transition-all" style={{ width: `${p.pct}%`, background: COLORS[i % COLORS.length] }} />
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 flex items-center justify-between text-xs">
-            <span className="text-slate-500">Всего ответов: <b>1 157</b> · Конверсия в ответ: <b>9.2%</b></span>
-            <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full text-[11px] font-medium">Защита от накруток вкл.</span>
-          </div>
-        </Card>
-
         {/* Reactions summary */}
         <Card title="Реакции и вовлечение" icon={<Smile size={16} />}>
           <div className="grid grid-cols-3 gap-3 mb-3">
@@ -2265,6 +1891,7 @@ function AnalyticsView() {
               <tr className="text-xs text-slate-500 uppercase tracking-wider">
                 <th className="text-left font-medium px-4 py-2">Сторис</th>
                 <th className="text-right font-medium px-4 py-2">Просмотры</th>
+                <th className="text-right font-medium px-4 py-2">Уникальные</th>
                 <th className="text-right font-medium px-4 py-2">CTR</th>
                 <th className="text-right font-medium px-4 py-2">Записи</th>
                 <th className="text-right font-medium px-4 py-2">Стоимость записи</th>
@@ -2273,14 +1900,15 @@ function AnalyticsView() {
             </thead>
             <tbody className="text-sm">
               {[
-                { t: 'Срочные смены в Москве — х1.5', v: 8420, ctr: 14.2, b: 312, cost: 84, roi: 4.8 },
-                { t: 'Реферальная программа +500₽', v: 6510, ctr: 18.7, b: 198, cost: 62, roi: 6.1 },
-                { t: 'Откуда вы о нас узнали?', v: 12180, ctr: 0, b: 0, cost: 0, roi: 0 },
-                { t: 'Инструкция по выходу на смену', v: 21340, ctr: 8.1, b: 145, cost: 110, roi: 2.4 }
+                { t: 'Срочные смены в Москве — х1.5', v: 8420, uniq: 7240, ctr: 14.2, b: 312, cost: 84, roi: 4.8 },
+                { t: 'Реферальная программа +500₽', v: 6510, uniq: 5980, ctr: 18.7, b: 198, cost: 62, roi: 6.1 },
+                { t: 'Новые правила выплат', v: 12180, uniq: 9210, ctr: 5.4, b: 156, cost: 95, roi: 3.1 },
+                { t: 'Инструкция по выходу на смену', v: 21340, uniq: 14920, ctr: 8.1, b: 145, cost: 110, roi: 2.4 }
               ].map((r, i) => (
                 <tr key={i} className="border-t border-slate-100 hover:bg-slate-50">
                   <td className="px-4 py-2.5 font-medium text-slate-800">{r.t}</td>
                   <td className="px-4 py-2.5 text-right tabular-nums">{r.v.toLocaleString('ru')}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums text-violet-700 font-semibold">{r.uniq.toLocaleString('ru')}</td>
                   <td className="px-4 py-2.5 text-right tabular-nums">{r.ctr ? `${r.ctr}%` : '—'}</td>
                   <td className="px-4 py-2.5 text-right tabular-nums">{r.b || '—'}</td>
                   <td className="px-4 py-2.5 text-right tabular-nums">{r.cost ? `${r.cost} ₽` : '—'}</td>
@@ -2298,33 +1926,34 @@ function AnalyticsView() {
         </div>
       </Card>
 
-      {/* Individual users tracking */}
-      <UsersTable />
+      {/* Individual users tracking — только в режиме по конкретной сторис */}
+      {analyticsMode === 'single' && <UsersTable />}
     </div>
   );
 }
 
 // ============ Individual users analytics ============
 function UsersTable() {
-  const [filter, setFilter] = useState('all'); // all | voted | seen_no_vote | not_seen | reacted
+  // Фильтр: все | уникальные первые | повторные | не увидели | реакция
+  const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
 
   const sampleUsers = [
-    { id: 10042, fio: 'Петров А.С.', phone: '+7 916 234-12-89', city: 'Москва', cat: 'Курьер', shifts: 47, rating: 9.6, seen: true, viewTime: 8.2, voted: true, answer: 'Через друзей', reaction: '🔥', date: '03.05 14:22' },
-    { id: 10043, fio: 'Иванов М.Д.', phone: '+7 925 117-04-22', city: 'Москва', cat: 'Склад', shifts: 12, rating: 9.0, seen: true, viewTime: 4.5, voted: false, answer: '', reaction: '', date: '03.05 14:48' },
-    { id: 10044, fio: 'Сидорова К.В.', phone: '+7 999 882-65-13', city: 'Краснодар', cat: 'Уборка', shifts: 89, rating: 9.8, seen: true, viewTime: 11.1, voted: true, answer: 'Реклама ВК', reaction: '❤️', date: '03.05 15:03' },
-    { id: 10045, fio: 'Кузнецов И.А.', phone: '+7 905 443-21-00', city: 'СПб', cat: 'Стройка', shifts: 3, rating: 8.4, seen: true, viewTime: 2.1, voted: false, answer: '', reaction: '', date: '03.05 15:10' },
-    { id: 10046, fio: 'Лебедев Р.П.', phone: '+7 911 765-43-21', city: 'СПб', cat: 'Курьер', shifts: 124, rating: 10.0, seen: true, viewTime: 9.8, voted: true, answer: 'Через друзей', reaction: '👍', date: '03.05 15:34' },
-    { id: 10047, fio: 'Морозов В.Е.', phone: '+7 967 112-33-44', city: 'Москва', cat: 'Производство', shifts: 28, rating: 9.2, seen: false, viewTime: 0, voted: false, answer: '', reaction: '', date: '—' },
-    { id: 10048, fio: 'Алексеев Д.К.', phone: '+7 903 998-12-77', city: 'Краснодар', cat: 'Склад', shifts: 67, rating: 9.4, seen: true, viewTime: 6.3, voted: false, answer: '', reaction: '🔥', date: '03.05 16:01' },
-    { id: 10049, fio: 'Соколова Н.Ю.', phone: '+7 962 334-22-11', city: 'Екатеринбург', cat: 'Уборка', shifts: 41, rating: 9.6, seen: true, viewTime: 7.7, voted: true, answer: 'Telegram-каналы', reaction: '', date: '04.05 09:15' },
-    { id: 10050, fio: 'Никитин С.А.', phone: '+7 985 222-43-87', city: 'Москва', cat: 'Курьер', shifts: 8, rating: 8.6, seen: true, viewTime: 3.4, voted: false, answer: '', reaction: '', date: '04.05 10:22' },
-    { id: 10051, fio: 'Волкова Е.И.', phone: '+7 926 100-99-88', city: 'Казань', cat: 'Склад', shifts: 56, rating: 9.8, seen: true, viewTime: 10.2, voted: true, answer: 'Поиск в интернете', reaction: '❤️', date: '04.05 11:48' }
+    { id: 10042, fio: 'Петров А.С.', phone: '+7 916 234-12-89', city: 'Москва', cat: 'Курьер', shifts: 47, rating: 9.6, seen: true, viewTime: 8.2, views: 1, reaction: '🔥', date: '03.05 14:22' },
+    { id: 10043, fio: 'Иванов М.Д.', phone: '+7 925 117-04-22', city: 'Москва', cat: 'Склад', shifts: 12, rating: 9.0, seen: true, viewTime: 4.5, views: 1, reaction: '', date: '03.05 14:48' },
+    { id: 10044, fio: 'Сидорова К.В.', phone: '+7 999 882-65-13', city: 'Краснодар', cat: 'Уборка', shifts: 89, rating: 9.8, seen: true, viewTime: 11.1, views: 3, reaction: '❤️', date: '03.05 15:03' },
+    { id: 10045, fio: 'Кузнецов И.А.', phone: '+7 905 443-21-00', city: 'СПб', cat: 'Стройка', shifts: 3, rating: 8.4, seen: true, viewTime: 2.1, views: 1, reaction: '', date: '03.05 15:10' },
+    { id: 10046, fio: 'Лебедев Р.П.', phone: '+7 911 765-43-21', city: 'СПб', cat: 'Курьер', shifts: 124, rating: 10.0, seen: true, viewTime: 9.8, views: 2, reaction: '👍', date: '03.05 15:34' },
+    { id: 10047, fio: 'Морозов В.Е.', phone: '+7 967 112-33-44', city: 'Москва', cat: 'Производство', shifts: 28, rating: 9.2, seen: false, viewTime: 0, views: 0, reaction: '', date: '—' },
+    { id: 10048, fio: 'Алексеев Д.К.', phone: '+7 903 998-12-77', city: 'Краснодар', cat: 'Склад', shifts: 67, rating: 9.4, seen: true, viewTime: 6.3, views: 2, reaction: '🔥', date: '03.05 16:01' },
+    { id: 10049, fio: 'Соколова Н.Ю.', phone: '+7 962 334-22-11', city: 'Екатеринбург', cat: 'Уборка', shifts: 41, rating: 9.6, seen: true, viewTime: 7.7, views: 1, reaction: '', date: '04.05 09:15' },
+    { id: 10050, fio: 'Никитин С.А.', phone: '+7 985 222-43-87', city: 'Москва', cat: 'Курьер', shifts: 8, rating: 8.6, seen: true, viewTime: 3.4, views: 1, reaction: '', date: '04.05 10:22' },
+    { id: 10051, fio: 'Волкова Е.И.', phone: '+7 926 100-99-88', city: 'Казань', cat: 'Склад', shifts: 56, rating: 9.8, seen: true, viewTime: 10.2, views: 4, reaction: '❤️', date: '04.05 11:48' }
   ];
 
   let filtered = sampleUsers;
-  if (filter === 'voted') filtered = filtered.filter(u => u.voted);
-  if (filter === 'seen_no_vote') filtered = filtered.filter(u => u.seen && !u.voted);
+  if (filter === 'unique') filtered = filtered.filter(u => u.seen);
+  if (filter === 'repeat') filtered = filtered.filter(u => u.views > 1);
   if (filter === 'not_seen') filtered = filtered.filter(u => !u.seen);
   if (filter === 'reacted') filtered = filtered.filter(u => u.reaction);
   if (search) filtered = filtered.filter(u =>
@@ -2335,18 +1964,18 @@ function UsersTable() {
 
   const counts = {
     all: sampleUsers.length,
-    voted: sampleUsers.filter(u => u.voted).length,
-    seen_no_vote: sampleUsers.filter(u => u.seen && !u.voted).length,
+    unique: sampleUsers.filter(u => u.seen).length,
+    repeat: sampleUsers.filter(u => u.views > 1).length,
     not_seen: sampleUsers.filter(u => !u.seen).length,
     reacted: sampleUsers.filter(u => u.reaction).length
   };
 
   const filters = [
     { v: 'all', l: 'Все', c: counts.all, color: 'slate' },
-    { v: 'voted', l: 'Прошли опрос', c: counts.voted, color: 'emerald' },
-    { v: 'seen_no_vote', l: 'Увидели, не ответили', c: counts.seen_no_vote, color: 'amber' },
+    { v: 'unique', l: 'Уникальные просмотры', c: counts.unique, color: 'violet' },
+    { v: 'repeat', l: 'Повторные просмотры', c: counts.repeat, color: 'blue' },
     { v: 'not_seen', l: 'Не увидели', c: counts.not_seen, color: 'rose' },
-    { v: 'reacted', l: 'Поставили реакцию', c: counts.reacted, color: 'violet' }
+    { v: 'reacted', l: 'Поставили реакцию', c: counts.reacted, color: 'emerald' }
   ];
 
   return (
@@ -2355,7 +1984,7 @@ function UsersTable() {
       icon={<Users size={16} />}
       action={
         <button
-          onClick={() => alert('Скачивается poll_export_example.xlsx — содержит 5 листов: Сводка, Все исполнители, Ответили, Увидели но не ответили, Не увидели')}
+          onClick={() => alert('Скачивается users_export.xlsx — содержит 4 листа: Сводка, Все исполнители, Уникальные, Повторные, Не увидели')}
           className="px-3 py-1.5 bg-emerald-600 text-white rounded-md text-xs font-semibold hover:bg-emerald-700 flex items-center gap-1.5"
         >
           <Download size={12} /> Excel-выгрузка
@@ -2404,11 +2033,11 @@ function UsersTable() {
               <th className="text-left font-medium px-3 py-2">Город</th>
               <th className="text-right font-medium px-3 py-2">Смен</th>
               <th className="text-right font-medium px-3 py-2">★</th>
-              <th className="text-center font-medium px-3 py-2">Просмотр</th>
+              <th className="text-center font-medium px-3 py-2">1-й просмотр</th>
+              <th className="text-center font-medium px-3 py-2">Всего открытий</th>
               <th className="text-left font-medium px-3 py-2">Статус</th>
-              <th className="text-left font-medium px-3 py-2">Ответ</th>
               <th className="text-center font-medium px-3 py-2">Реакция</th>
-              <th className="text-left font-medium px-3 py-2">Время</th>
+              <th className="text-left font-medium px-3 py-2">Последнее открытие</th>
             </tr>
           </thead>
           <tbody>
@@ -2429,22 +2058,21 @@ function UsersTable() {
                     <span className="text-xs text-slate-300">—</span>
                   )}
                 </td>
-              <td className="px-3 py-2">
-                  {u.voted ? (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-100 text-emerald-700">Прошёл опрос</span>
+                <td className="px-3 py-2 text-center">
+                  {u.views > 0 ? (
+                    <span className={`text-xs font-semibold tabular-nums ${u.views > 1 ? 'text-blue-700' : 'text-violet-700'}`}>{u.views}</span>
+                  ) : (
+                    <span className="text-xs text-slate-300">—</span>
+                  )}
+                </td>
+                <td className="px-3 py-2">
+                  {u.views > 1 ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-100 text-blue-700">Повторный</span>
                   ) : u.seen ? (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-100 text-amber-700">Не ответил</span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-violet-100 text-violet-700">Уникальный</span>
                   ) : (
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500">Не увидел</span>
                   )}
-                </td>
-                <td className="px-3 py-2 text-xs">
-                  {u.answer
-                    ? <span className="inline-flex items-center gap-1 bg-blue-50 border border-blue-100 text-blue-800 px-2 py-0.5 rounded-md font-medium max-w-[140px] truncate" title={u.answer}>
-                        💬 {u.answer}
-                      </span>
-                    : <span className="text-slate-300">—</span>
-                  }
                 </td>
                 <td className="px-3 py-2 text-center text-base">{u.reaction || <span className="text-slate-300 text-xs">—</span>}</td>
                 <td className="px-3 py-2 text-xs text-slate-500 tabular-nums">{u.date}</td>
@@ -2455,12 +2083,12 @@ function UsersTable() {
       </div>
 
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
-          <UserX size={16} className="text-amber-700 flex-shrink-0 mt-0.5" />
+        <div className="bg-violet-50 border border-violet-200 rounded-lg p-3 flex items-start gap-2">
+          <UserCheck size={16} className="text-violet-700 flex-shrink-0 mt-0.5" />
           <div>
-            <div className="text-xs font-bold text-amber-900 mb-0.5">«Увидели, не ответили» — главный сегмент для маркетинга</div>
-            <div className="text-[11px] text-amber-800 leading-snug">
-              Эти исполнители уже в воронке, но не дошли до целевого действия. Можно сделать ретаргет push-уведомлением, повторной сторис или ручным обзвоном.
+            <div className="text-xs font-bold text-violet-900 mb-0.5">«Уникальные просмотры» — основная метрика охвата</div>
+            <div className="text-[11px] text-violet-800 leading-snug">
+              Каждый исполнитель считается только один раз. Если он открыл сторис повторно — он не появится повторно в этой выборке, но попадёт в фильтр «Повторные просмотры».
             </div>
           </div>
         </div>
@@ -2469,7 +2097,7 @@ function UsersTable() {
           <div>
             <div className="text-xs font-bold text-blue-900 mb-0.5">Excel-выгрузка</div>
             <div className="text-[11px] text-blue-800 leading-snug">
-              Все 4 сегмента (ответили / не ответили / не увидели / реакции) — отдельными листами, со сводкой и формулами. Готова для CRM, обзвона или Excel-аналитики.
+              Сегменты (уникальные / повторные / не увидели / реакции) — отдельными листами, со сводкой и формулами. Готова для CRM, обзвона или Excel-аналитики.
             </div>
           </div>
         </div>
@@ -2752,9 +2380,8 @@ function TemplatesView({ showToast, onUseTemplate }) {
   const [activeCategory, setActiveCategory] = useState('all');
 
   const categories = [
-    { v: 'all', l: 'Все', count: 9 },
+    { v: 'all', l: 'Все', count: 7 },
     { v: 'urgent', l: 'Срочные смены', count: 2, icon: '🔥' },
-    { v: 'polls', l: 'Опросы', count: 2, icon: '📊' },
     { v: 'promo', l: 'Акции', count: 3, icon: '🎁' },
     { v: 'onboarding', l: 'Онбординг', count: 2, icon: '📚' }
   ];
@@ -2766,7 +2393,7 @@ function TemplatesView({ showToast, onUseTemplate }) {
       cover: 'bg-gradient-to-br from-orange-500 to-red-600', icon: '🔥',
       title: 'Срочно нужны люди в Москве!',
       body: 'У ВкусВилла на складе в Хамовниках есть смены сегодня и завтра. Ставка 2500 ₽ + 500 ₽ от РР. Нажми «Записаться».',
-      hasContact: true, hasPoll: false, hasCopay: true,
+      hasContact: true, hasCopay: true,
       uses: 47
     },
     {
@@ -2775,26 +2402,8 @@ function TemplatesView({ showToast, onUseTemplate }) {
       cover: 'bg-gradient-to-br from-amber-500 to-orange-600', icon: '⏰',
       title: 'Смены на завтра',
       body: 'Завтра у партнёров 12 открытых смен. Ставки от 2200 ₽. Локации в описании.',
-      hasContact: true, hasPoll: false, hasCopay: false,
+      hasContact: true, hasCopay: false,
       uses: 31
-    },
-    {
-      id: 3, cat: 'polls', name: 'Опрос: «Откуда узнали»',
-      desc: 'CustDev. 5 вариантов + «другое»',
-      cover: 'bg-gradient-to-br from-violet-500 to-purple-600', icon: '📊',
-      title: 'Откуда вы о нас узнали?',
-      body: 'Помогите нам стать лучше — это займёт 5 секунд. Одно нажатие.',
-      hasContact: false, hasPoll: true, hasCopay: false,
-      uses: 18
-    },
-    {
-      id: 4, cat: 'polls', name: 'Опрос NPS',
-      desc: 'Готовы ли рекомендовать РР друзьям',
-      cover: 'bg-gradient-to-br from-pink-500 to-rose-600', icon: '⭐',
-      title: 'Оцените нас',
-      body: 'Готовы посоветовать РР друзьям? Один тап — и нам понятно, что улучшать.',
-      hasContact: false, hasPoll: true, hasCopay: false,
-      uses: 12
     },
     {
       id: 5, cat: 'promo', name: 'Реферальная программа',
@@ -2802,7 +2411,7 @@ function TemplatesView({ showToast, onUseTemplate }) {
       cover: 'bg-gradient-to-br from-emerald-500 to-teal-600', icon: '🎁',
       title: 'Приведи друга — получи 2000 ₽',
       body: 'Поделись приложением с друзьями. За каждого, кто выполнит первую смену, начислим 2000 ₽ на карту.',
-      hasContact: false, hasPoll: false, hasCopay: false,
+      hasContact: false, hasCopay: false,
       uses: 24
     },
     {
@@ -2811,16 +2420,16 @@ function TemplatesView({ showToast, onUseTemplate }) {
       cover: 'bg-gradient-to-br from-fuchsia-500 to-pink-600', icon: '🏆',
       title: '5 смен — бонус 1000 ₽',
       body: 'Сделайте 5 смен на этой неделе — получите 1000 ₽ бонусом сверху.',
-      hasContact: false, hasPoll: false, hasCopay: true,
+      hasContact: false, hasCopay: true,
       uses: 19
     },
     {
-      id: 7, cat: 'promo', name: 'Возврат «спящих»',
-      desc: 'Для тех, кто не выходил 30+ дней',
+      id: 7, cat: 'promo', name: 'Возврат активной аудитории',
+      desc: 'Для тех, кто давно не заходил',
       cover: 'bg-gradient-to-br from-cyan-500 to-blue-600', icon: '👋',
       title: 'Соскучились по сменам?',
       body: 'У наших партнёров есть смены со ставкой от 2500 ₽ + бонус 300 ₽ за возврат к работе.',
-      hasContact: true, hasPoll: false, hasCopay: true,
+      hasContact: true, hasCopay: true,
       uses: 8
     },
     {
@@ -2829,7 +2438,7 @@ function TemplatesView({ showToast, onUseTemplate }) {
       cover: 'bg-gradient-to-br from-blue-500 to-indigo-600', icon: '📚',
       title: 'Как пройдёт ваша первая смена',
       body: 'Подойдите за 15 минут до начала. Возьмите паспорт. Менеджер встретит у входа и покажет, что делать.',
-      hasContact: true, hasPoll: false, hasCopay: false,
+      hasContact: true, hasCopay: false,
       uses: 56
     },
     {
@@ -2838,7 +2447,7 @@ function TemplatesView({ showToast, onUseTemplate }) {
       cover: 'bg-gradient-to-br from-slate-600 to-slate-800', icon: '✅',
       title: 'Чек-лист на смену',
       body: 'Паспорт, СНИЛС, ИНН, рабочая обувь, удобная одежда. Зарядка для телефона — на всякий случай.',
-      hasContact: false, hasPoll: false, hasCopay: false,
+      hasContact: false, hasCopay: false,
       uses: 41
     }
   ];
@@ -2900,10 +2509,9 @@ function TemplatesView({ showToast, onUseTemplate }) {
               {/* Bottom: title + badges */}
               <div className="space-y-1.5">
                 <div className="text-white text-xs font-bold leading-tight drop-shadow line-clamp-2">{t.title}</div>
-                {(t.hasContact || t.hasPoll || t.hasCopay) && (
+                {(t.hasContact || t.hasCopay) && (
                   <div className="flex gap-1 flex-wrap">
                     {t.hasContact && <span className="text-[9px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full">📞 связаться</span>}
-                    {t.hasPoll && <span className="text-[9px] bg-violet-500 text-white px-1.5 py-0.5 rounded-full">📊 опрос</span>}
                     {t.hasCopay && <span className="text-[9px] bg-amber-500 text-white px-1.5 py-0.5 rounded-full">💰 доплата</span>}
                   </div>
                 )}
@@ -2952,7 +2560,7 @@ function TemplatesView({ showToast, onUseTemplate }) {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-blue-800">
           <div>
             <div className="font-semibold mb-0.5">1. Выбираете шаблон</div>
-            <div className="text-blue-700">Все поля — заголовок, описание, кнопки, опрос — заполняются автоматически</div>
+            <div className="text-blue-700">Все поля — заголовок, описание, кнопки, реакции — заполняются автоматически</div>
           </div>
           <div>
             <div className="font-semibold mb-0.5">2. Правите под себя</div>
@@ -3007,7 +2615,7 @@ function Toggle({ on, onChange }) {
   );
 }
 
-function KPICard({ label, value, delta, icon, color }) {
+function KPICard({ label, value, delta, icon, color, hint }) {
   const colors = {
     blue: 'bg-blue-50 text-blue-600',
     violet: 'bg-violet-50 text-violet-600',
@@ -3017,7 +2625,7 @@ function KPICard({ label, value, delta, icon, color }) {
   };
   const positive = delta > 0;
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-4">
+    <div className="bg-white rounded-xl border border-slate-200 p-4" title={hint || ''}>
       <div className="flex items-center justify-between mb-2">
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${colors[color]}`}>{icon}</div>
         <div className={`text-xs font-semibold flex items-center gap-0.5 ${positive ? 'text-emerald-600' : 'text-rose-600'}`}>
@@ -3026,7 +2634,10 @@ function KPICard({ label, value, delta, icon, color }) {
         </div>
       </div>
       <div className="text-2xl font-bold text-slate-800 tabular-nums">{value}</div>
-      <div className="text-xs text-slate-500 mt-0.5">{label}</div>
+      <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+        {label}
+        {hint && <span className="text-slate-300" title={hint}>ⓘ</span>}
+      </div>
     </div>
   );
 }
@@ -3044,7 +2655,7 @@ function IconBtn({ icon, onClick }) {
 function NotificationsPanel({ onClose }) {
   const items = [
     { id: 1, type: 'success', icon: <CheckCircle2 size={14} className="text-emerald-600" />, title: '5 новых записей через сторис', body: '«Срочные смены в Москве — х1.5» — за последний час', time: '12 мин назад', unread: true },
-    { id: 2, type: 'info', icon: <BarChart3 size={14} className="text-violet-600" />, title: 'Опрос собрал 100 ответов', body: '«Откуда вы о нас узнали?» — пора смотреть результаты', time: '1ч назад', unread: true },
+    { id: 2, type: 'info', icon: <ClipboardCheck size={14} className="text-amber-600" />, title: 'Новая сторис на верификации', body: '«Срочно нужны курьеры в Москве» от Анны Соколовой — проверьте, пожалуйста', time: '1ч назад', unread: true },
     { id: 3, type: 'warning', icon: <AlertTriangle size={14} className="text-amber-600" />, title: 'Битая ссылка снята автоматически', body: 'Сторис «Реферальная программа» переведена в архив — 2 ссылки 404', time: '3ч назад', unread: true },
     { id: 4, type: 'info', icon: <UserPlus size={14} className="text-blue-600" />, title: 'Анна Соколова опубликовала сторис', body: '«Бонус за выходные смены» — охват ~3200', time: 'вчера', unread: false },
     { id: 5, type: 'success', icon: <Sparkles size={14} className="text-blue-600" />, title: 'A/B-тест завершён — победил вариант B', body: 'CTR 18.7% против 14.2%. Применили автоматически.', time: 'вчера', unread: false }
@@ -3207,12 +2818,12 @@ function AddChoiceModal({ onClose, onPickNew, onPickTemplate }) {
   const [stage, setStage] = useState('choice'); // 'choice' | 'templates'
 
   const popularTemplates = [
-    { id: 1, cat: 'urgent', name: 'Срочные смены — повышенная ставка', desc: 'Горящие вакансии с доплатой. Кнопка записи.', cover: 'bg-gradient-to-br from-orange-500 to-red-600', icon: '🔥', title: 'Срочно нужны люди в Москве!', body: 'У ВкусВилла на складе в Хамовниках есть смены сегодня и завтра. Ставка 2500 ₽ + 500 ₽ от РР. Нажми «Записаться».', hasContact: true, hasPoll: false, hasCopay: true, uses: 47 },
-    { id: 2, cat: 'urgent', name: 'Завтрашние смены (за день)', desc: 'За сутки до даты — список открытых смен', cover: 'bg-gradient-to-br from-amber-500 to-orange-600', icon: '⏰', title: 'Смены на завтра', body: 'Завтра у партнёров 12 открытых смен. Ставки от 2200 ₽. Локации в описании.', hasContact: true, hasPoll: false, hasCopay: false, uses: 31 },
-    { id: 3, cat: 'polls', name: 'Опрос: «Откуда узнали»', desc: 'CustDev. 5 вариантов + «другое»', cover: 'bg-gradient-to-br from-violet-500 to-purple-600', icon: '📊', title: 'Откуда вы о нас узнали?', body: 'Помогите нам стать лучше — это займёт 5 секунд. Одно нажатие.', hasContact: false, hasPoll: true, hasCopay: false, uses: 18 },
-    { id: 5, cat: 'promo', name: 'Реферальная программа', desc: 'Приведи друга — +2000 ₽', cover: 'bg-gradient-to-br from-emerald-500 to-teal-600', icon: '🎁', title: 'Приведи друга — получи 2000 ₽', body: 'Поделись приложением с друзьями. За каждого, кто выполнит первую смену, начислим 2000 ₽ на карту.', hasContact: false, hasPoll: false, hasCopay: false, uses: 24 },
-    { id: 8, cat: 'onboarding', name: 'Первая смена — инструкция', desc: 'Для новичков — что делать в день смены', cover: 'bg-gradient-to-br from-blue-500 to-indigo-600', icon: '📚', title: 'Как пройдёт ваша первая смена', body: 'Подойдите за 15 минут до начала. Возьмите паспорт. Менеджер встретит у входа и покажет, что делать.', hasContact: true, hasPoll: false, hasCopay: false, uses: 56 },
-    { id: 9, cat: 'onboarding', name: 'Что взять с собой', desc: 'Чек-лист перед сменой', cover: 'bg-gradient-to-br from-slate-600 to-slate-800', icon: '✅', title: 'Чек-лист на смену', body: 'Паспорт, СНИЛС, ИНН, рабочая обувь, удобная одежда. Зарядка для телефона — на всякий случай.', hasContact: false, hasPoll: false, hasCopay: false, uses: 41 }
+    { id: 1, cat: 'urgent', name: 'Срочные смены — повышенная ставка', desc: 'Горящие вакансии с доплатой. Кнопка записи.', cover: 'bg-gradient-to-br from-orange-500 to-red-600', icon: '🔥', title: 'Срочно нужны люди в Москве!', body: 'У ВкусВилла на складе в Хамовниках есть смены сегодня и завтра. Ставка 2500 ₽ + 500 ₽ от РР. Нажми «Записаться».', hasContact: true, hasCopay: true, uses: 47 },
+    { id: 2, cat: 'urgent', name: 'Завтрашние смены (за день)', desc: 'За сутки до даты — список открытых смен', cover: 'bg-gradient-to-br from-amber-500 to-orange-600', icon: '⏰', title: 'Смены на завтра', body: 'Завтра у партнёров 12 открытых смен. Ставки от 2200 ₽. Локации в описании.', hasContact: true, hasCopay: false, uses: 31 },
+    { id: 5, cat: 'promo', name: 'Реферальная программа', desc: 'Приведи друга — +2000 ₽', cover: 'bg-gradient-to-br from-emerald-500 to-teal-600', icon: '🎁', title: 'Приведи друга — получи 2000 ₽', body: 'Поделись приложением с друзьями. За каждого, кто выполнит первую смену, начислим 2000 ₽ на карту.', hasContact: false, hasCopay: false, uses: 24 },
+    { id: 6, cat: 'promo', name: 'Бонус за серию смен', desc: 'Геймификация для активных', cover: 'bg-gradient-to-br from-fuchsia-500 to-pink-600', icon: '🏆', title: '5 смен — бонус 1000 ₽', body: 'Сделайте 5 смен на этой неделе — получите 1000 ₽ бонусом сверху.', hasContact: false, hasCopay: true, uses: 19 },
+    { id: 8, cat: 'onboarding', name: 'Первая смена — инструкция', desc: 'Для новичков — что делать в день смены', cover: 'bg-gradient-to-br from-blue-500 to-indigo-600', icon: '📚', title: 'Как пройдёт ваша первая смена', body: 'Подойдите за 15 минут до начала. Возьмите паспорт. Менеджер встретит у входа и покажет, что делать.', hasContact: true, hasCopay: false, uses: 56 },
+    { id: 9, cat: 'onboarding', name: 'Что взять с собой', desc: 'Чек-лист перед сменой', cover: 'bg-gradient-to-br from-slate-600 to-slate-800', icon: '✅', title: 'Чек-лист на смену', body: 'Паспорт, СНИЛС, ИНН, рабочая обувь, удобная одежда. Зарядка для телефона — на всякий случай.', hasContact: false, hasCopay: false, uses: 41 }
   ];
 
   return (
@@ -3250,7 +2861,7 @@ function AddChoiceModal({ onClose, onPickNew, onPickTemplate }) {
                   <Sparkles size={20} />
                 </div>
                 <div className="font-bold text-sm text-slate-800 mb-1">Выбрать шаблон</div>
-                <div className="text-xs text-slate-500 leading-snug">Готовые конструкции — текст, кнопки, опрос. Часто используемые настройки уже включены.</div>
+                <div className="text-xs text-slate-500 leading-snug">Готовые конструкции — текст, кнопки, реакции. Часто используемые настройки уже включены.</div>
                 <div className="mt-3 text-[11px] text-blue-600 font-semibold flex items-center gap-1">
                   Открыть галерею <ChevronRight size={12} />
                 </div>
@@ -3318,8 +2929,430 @@ function AddChoiceModal({ onClose, onPickNew, onPickTemplate }) {
   );
 }
 
+// ============ Verification View — модерация сторис ============
+function VerificationView({ showToast }) {
+  // Активная вкладка: pending — ожидающие, history — история
+  const [tab, setTab] = useState('pending');
+  // Состояние модалки отклонения
+  const [rejectingStory, setRejectingStory] = useState(null);
+  // Состояние решений (для демо — храним локально)
+  const [decisions, setDecisions] = useState({});
+
+  // Самые частые причины отказа (согласно прототипу)
+  const rejectionReasons = [
+    { id: 'low_quality', label: 'Низкое качество обложки / контента' },
+    { id: 'errors', label: 'Орфографические ошибки в тексте' },
+    { id: 'irrelevant', label: 'Нерелевантный контент для исполнителей' },
+    { id: 'partner_not_confirmed', label: 'Не одобрена партнёрская интеграция' },
+    { id: 'legal', label: 'Юридические риски / нужна проверка юриста' },
+    { id: 'misleading', label: 'Вводящая в заблуждение информация (ставка, бонус, сроки)' },
+    { id: 'duplicate', label: 'Дубликат уже опубликованной сторис' },
+    { id: 'fake_urgency', label: 'Искусственная срочность без основания' },
+    { id: 'broken_link', label: 'Неработающая ссылка / ведёт не туда' }
+  ];
+
+  const handleApprove = (storyId) => {
+    setDecisions({ ...decisions, [storyId]: { decision: 'approved', date: new Date().toLocaleString('ru') } });
+    showToast('Сторис одобрена и автоматически опубликована');
+  };
+
+  // Активный список ожидающих — без тех, по кому уже есть решение
+  const activePending = pendingVerification.filter(s => !decisions[s.id]);
+  // История с учётом локальных решений
+  const localDecisions = Object.entries(decisions).map(([id, d]) => {
+    const story = pendingVerification.find(s => s.id === +id);
+    return story ? {
+      id: story.id,
+      title: story.title,
+      author: story.author,
+      decision: d.decision,
+      moderator: 'Мария Куликова',
+      decidedAt: d.date,
+      reasons: d.reasons,
+      comment: d.comment,
+      cover: story.cover
+    } : null;
+  }).filter(Boolean);
+  const fullHistory = [...localDecisions, ...verificationHistory];
+
+  return (
+    <div className="p-6 space-y-5">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <ClipboardCheck size={20} className="text-amber-600" /> Верификация сторис
+          </h3>
+          <p className="text-sm text-slate-500 mt-1">
+            Очередь модерации перед публикацией. Проверяйте качество контента, отсутствие ошибок и соответствие правилам.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex items-center gap-2">
+            <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+            <span className="text-xs font-bold text-amber-900">{activePending.length}</span>
+            <span className="text-xs text-amber-700">в очереди</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 bg-slate-100 p-1 rounded-lg w-fit">
+        <button
+          onClick={() => setTab('pending')}
+          className={`px-4 py-2 rounded-md text-sm font-semibold transition flex items-center gap-2 ${
+            tab === 'pending' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-600'
+          }`}
+        >
+          <ShieldAlert size={14} /> Ожидающие
+          <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${tab === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-slate-200 text-slate-600'}`}>
+            {activePending.length}
+          </span>
+        </button>
+        <button
+          onClick={() => setTab('history')}
+          className={`px-4 py-2 rounded-md text-sm font-semibold transition flex items-center gap-2 ${
+            tab === 'history' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-600'
+          }`}
+        >
+          <Archive size={14} /> История
+          <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${tab === 'history' ? 'bg-slate-200 text-slate-700' : 'bg-slate-200 text-slate-600'}`}>
+            {fullHistory.length}
+          </span>
+        </button>
+      </div>
+
+      {/* Pending list */}
+      {tab === 'pending' && (
+        <>
+          {activePending.length === 0 ? (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-8 text-center">
+              <CheckCircle2 size={40} className="text-emerald-500 mx-auto mb-2" />
+              <div className="text-lg font-bold text-emerald-900">Очередь пуста</div>
+              <div className="text-sm text-emerald-700 mt-1">Все сторис обработаны. Когда маркетологи отправят новые — они появятся здесь.</div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {activePending.map(story => (
+                <div key={story.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col md:flex-row">
+                  {/* Preview */}
+                  <div className={`${story.cover} md:w-[200px] flex-shrink-0 p-4 flex flex-col justify-between text-white relative overflow-hidden min-h-[200px]`}>
+                    <div className="flex items-start justify-between">
+                      <div className="w-7 h-7 rounded-full bg-white/95 flex items-center justify-center text-[10px] font-bold text-slate-800">РР</div>
+                      <span className="text-[10px] bg-white/20 backdrop-blur px-2 py-0.5 rounded-full">
+                        {story.contentType === 'video' ? '🎥 Видео' : '📷 Фото'}
+                        {story.contentDuration && ` · ${story.contentDuration}с`}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold leading-tight drop-shadow line-clamp-3">{story.title}</div>
+                      <div className="text-[11px] opacity-90 mt-1 line-clamp-2">{story.description}</div>
+                    </div>
+                  </div>
+
+                  {/* Details */}
+                  <div className="flex-1 p-4 flex flex-col">
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div>
+                        <div className="text-sm font-bold text-slate-800">{story.title}</div>
+                        <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
+                          <span className="flex items-center gap-1"><UserPlus size={11} />{story.author}</span>
+                          <span className="text-slate-300">·</span>
+                          <span>{story.authorRole}</span>
+                          <span className="text-slate-300">·</span>
+                          <span>{story.createdAt}</span>
+                        </div>
+                      </div>
+                      <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">На проверке</span>
+                    </div>
+
+                    <div className="text-xs text-slate-600 mb-3 leading-snug">{story.description}</div>
+
+                    {/* Meta */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                      <div className="bg-slate-50 rounded-lg p-2">
+                        <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Города</div>
+                        <div className="text-xs font-semibold text-slate-800 mt-0.5">{story.targetCities.join(', ')}</div>
+                      </div>
+                      <div className="bg-slate-50 rounded-lg p-2">
+                        <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Охват</div>
+                        <div className="text-xs font-semibold text-slate-800 mt-0.5 tabular-nums">~{story.estimatedReach.toLocaleString('ru')}</div>
+                      </div>
+                      <div className="bg-slate-50 rounded-lg p-2">
+                        <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Кнопка связи</div>
+                        <div className="text-xs font-semibold text-slate-800 mt-0.5">{story.hasContact ? '✓ Есть' : '— Нет'}</div>
+                      </div>
+                      <div className="bg-slate-50 rounded-lg p-2">
+                        <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Доплата</div>
+                        <div className="text-xs font-semibold text-slate-800 mt-0.5">{story.hasCopay ? '✓ Есть' : '— Нет'}</div>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="mt-auto flex gap-2 flex-wrap">
+                      <button
+                        onClick={() => handleApprove(story.id)}
+                        className="px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg hover:bg-emerald-700 flex items-center gap-2"
+                      >
+                        <ThumbsUp size={14} /> Одобрить
+                      </button>
+                      <button
+                        onClick={() => setRejectingStory(story)}
+                        className="px-4 py-2 bg-white border-2 border-rose-200 text-rose-700 text-sm font-bold rounded-lg hover:bg-rose-50 flex items-center gap-2"
+                      >
+                        <ThumbsDown size={14} /> Отклонить
+                      </button>
+                      <button
+                        onClick={() => showToast('Открыт полноэкранный предпросмотр сторис')}
+                        className="px-4 py-2 bg-white border border-slate-200 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-50 flex items-center gap-2"
+                      >
+                        <Eye size={14} /> Полный предпросмотр
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* History */}
+      {tab === 'history' && (
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <div className="divide-y divide-slate-100">
+            {fullHistory.map(h => (
+              <div key={h.id} className="p-4 hover:bg-slate-50/50 transition">
+                <div className="flex items-start gap-3">
+                  <div className={`w-10 h-14 rounded-md ${h.cover} flex-shrink-0`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start gap-2 flex-wrap">
+                      <div className="font-semibold text-sm text-slate-800">{h.title}</div>
+                      {h.decision === 'approved' ? (
+                        <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">
+                          <ThumbsUp size={10} /> Одобрено
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">
+                          <ThumbsDown size={10} /> Отклонено
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-0.5">
+                      Автор: <b className="text-slate-700">{h.author}</b> · Модератор: <b className="text-slate-700">{h.moderator}</b> · {h.decidedAt}
+                    </div>
+                    {h.decision === 'rejected' && h.reasons && (
+                      <div className="mt-2 bg-rose-50 border border-rose-100 rounded-lg p-2.5">
+                        <div className="text-[11px] font-bold text-rose-900 mb-1">Причины отказа:</div>
+                        <ul className="text-[11px] text-rose-800 space-y-0.5 list-disc list-inside">
+                          {h.reasons.map((r, i) => <li key={i}>{r}</li>)}
+                        </ul>
+                        {h.comment && (
+                          <div className="mt-2 text-[11px] text-rose-700 italic border-t border-rose-100 pt-1.5 flex items-start gap-1.5">
+                            <MessageSquare size={11} className="flex-shrink-0 mt-0.5" />
+                            <span>«{h.comment}»</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Rejection modal */}
+      {rejectingStory && (
+        <RejectModal
+          story={rejectingStory}
+          reasons={rejectionReasons}
+          onClose={() => setRejectingStory(null)}
+          onConfirm={(selectedReasons, comment) => {
+            const reasonLabels = selectedReasons.map(id => rejectionReasons.find(r => r.id === id)?.label).filter(Boolean);
+            setDecisions({
+              ...decisions,
+              [rejectingStory.id]: {
+                decision: 'rejected',
+                reasons: reasonLabels,
+                comment,
+                date: new Date().toLocaleString('ru')
+              }
+            });
+            setRejectingStory(null);
+            showToast('Сторис отклонена, автор получит уведомление');
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ============ Reject modal ============
+function RejectModal({ story, reasons, onClose, onConfirm }) {
+  const [selectedReasons, setSelectedReasons] = useState([]);
+  const [comment, setComment] = useState('');
+
+  const toggleReason = (id) => {
+    if (selectedReasons.includes(id)) {
+      setSelectedReasons(selectedReasons.filter(r => r !== id));
+    } else {
+      setSelectedReasons([...selectedReasons, id]);
+    }
+  };
+
+  const canSubmit = selectedReasons.length > 0;
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="px-6 py-4 bg-rose-600 text-white flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <ThumbsDown size={18} />
+            <div>
+              <div className="font-bold text-base">Отклонить сторис</div>
+              <div className="text-xs text-rose-100">«{story.title}»</div>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1.5 hover:bg-white/15 rounded-lg">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+          {/* Reasons */}
+          <div>
+            <div className="text-sm font-bold text-slate-800 mb-2 flex items-center justify-between">
+              <span>Выберите причины отказа</span>
+              <span className="text-[11px] text-slate-500 font-normal">Выбрано: {selectedReasons.length}</span>
+            </div>
+            <div className="text-xs text-slate-500 mb-3">Можно выбрать несколько. Самые частые — наверху.</div>
+            <div className="space-y-1.5">
+              {reasons.map(r => (
+                <label
+                  key={r.id}
+                  className={`flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition ${
+                    selectedReasons.includes(r.id)
+                      ? 'bg-rose-50 border-rose-300'
+                      : 'bg-white border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedReasons.includes(r.id)}
+                    onChange={() => toggleReason(r.id)}
+                    className="w-4 h-4 accent-rose-600"
+                  />
+                  <span className="text-sm text-slate-800 flex-1">{r.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Comment */}
+          <div>
+            <label className="block text-sm font-bold text-slate-800 mb-1">
+              Комментарий <span className="text-xs text-slate-500 font-normal">(необязательно — но поможет автору исправить)</span>
+            </label>
+            <textarea
+              value={comment}
+              onChange={e => setComment(e.target.value.slice(0, 500))}
+              rows={4}
+              placeholder="Например: «Замените обложку — слишком мелкий шрифт. И уточните ставку — у партнёра она 2500, а не 2800»"
+              className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 resize-none"
+            />
+            <div className="text-[11px] text-slate-400 text-right mt-1">{comment.length}/500</div>
+          </div>
+
+          {/* Info */}
+          <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 flex items-start gap-2">
+            <AlertCircle size={14} className="text-amber-600 flex-shrink-0 mt-0.5" />
+            <div className="text-[11px] text-amber-800 leading-snug">
+              Автор сторис получит push-уведомление с указанными причинами и комментарием. Сторис вернётся в черновики и его можно будет переотправить после исправления.
+            </div>
+          </div>
+        </div>
+
+        <div className="px-6 py-3 border-t border-slate-200 flex justify-end gap-2 bg-slate-50">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800"
+          >
+            Отмена
+          </button>
+          <button
+            onClick={() => onConfirm(selectedReasons, comment)}
+            disabled={!canSubmit}
+            className="px-4 py-2 text-sm font-bold text-white bg-rose-600 rounded-lg hover:bg-rose-700 disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <ThumbsDown size={14} /> Отклонить сторис
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ============ Editor overlay — раскрывается над основной СРМ ============
 function EditorOverlay({ mode, templateData, onClose, showToast }) {
+  // Показывать ли плашку «Отправлено на верификацию» после сохранения
+  const [verificationSent, setVerificationSent] = useState(false);
+
+  const handleSendForVerification = () => {
+    setVerificationSent(true);
+  };
+
+  if (verificationSent) {
+    return (
+      <div className="fixed inset-0 bg-slate-900/60 z-40 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+          <div className="px-6 py-5 bg-gradient-to-br from-amber-50 to-orange-50 border-b border-amber-100">
+            <div className="flex items-start gap-3">
+              <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <ClipboardCheck size={24} className="text-amber-600" />
+              </div>
+              <div>
+                <div className="text-lg font-bold text-slate-900">Ваша история отправлена на верификацию</div>
+                <div className="text-sm text-slate-600 mt-1">Ожидайте — модератор проверит её в ближайшее время.</div>
+              </div>
+            </div>
+          </div>
+          <div className="px-6 py-5">
+            <div className="space-y-3">
+              <div className="flex items-start gap-2 text-sm text-slate-600">
+                <span className="text-amber-600 font-bold flex-shrink-0">1.</span>
+                <span>Сторис попала в очередь раздела <b>«Верификация Сторис»</b>.</span>
+              </div>
+              <div className="flex items-start gap-2 text-sm text-slate-600">
+                <span className="text-amber-600 font-bold flex-shrink-0">2.</span>
+                <span>Модератор может одобрить или отклонить сторис с указанием причины.</span>
+              </div>
+              <div className="flex items-start gap-2 text-sm text-slate-600">
+                <span className="text-amber-600 font-bold flex-shrink-0">3.</span>
+                <span>После одобрения сторис автоматически уйдёт в публикацию.</span>
+              </div>
+            </div>
+            <div className="mt-5 bg-slate-50 border border-slate-100 rounded-lg p-3 text-xs text-slate-500 flex items-start gap-2">
+              <Bell size={13} className="text-slate-400 flex-shrink-0 mt-0.5" />
+              <span>Вы получите push-уведомление, когда модератор примет решение. Среднее время верификации — <b>15 минут</b>.</span>
+            </div>
+          </div>
+          <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+            <button
+              onClick={() => { setVerificationSent(false); showToast('Сторис отправлена на верификацию'); onClose(); }}
+              className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            >
+              <Check size={14} /> Понятно
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 bg-slate-900/50 z-40 flex items-start justify-center overflow-y-auto">
       <div
@@ -3338,8 +3371,8 @@ function EditorOverlay({ mode, templateData, onClose, showToast }) {
             <button onClick={() => showToast('Сохранено в черновики')} className="px-3 py-1.5 text-xs font-medium text-white bg-white/15 hover:bg-white/25 rounded-lg flex items-center gap-1.5">
               <Save size={14} /> Черновик
             </button>
-            <button onClick={() => { showToast('Сторис опубликована'); onClose(); }} className="px-3 py-1.5 text-xs font-bold text-blue-700 bg-white rounded-lg hover:bg-slate-100 flex items-center gap-1.5">
-              <Zap size={14} /> Опубликовать
+            <button onClick={handleSendForVerification} className="px-3 py-1.5 text-xs font-bold text-blue-700 bg-white rounded-lg hover:bg-slate-100 flex items-center gap-1.5">
+              <ClipboardCheck size={14} /> Отправить на верификацию
             </button>
             <button onClick={onClose} className="p-1.5 hover:bg-white/15 rounded-lg" title="Закрыть">
               <X size={18} />
@@ -3439,7 +3472,8 @@ export default function StoriesAdmin() {
       children: [
         { l: 'Акции' },
         { l: 'Оповещения' },
-        { l: 'Сторис', active: true },
+        { l: 'Сторис', active: activeTab !== 'verification' },
+        { l: 'Верификация Сторис', active: activeTab === 'verification', badge: 3 },
         { l: 'Новости' },
         { l: 'Инструкции' }
       ]
@@ -3506,13 +3540,22 @@ export default function StoriesAdmin() {
                   {it.children.map((c, ci) => (
                     <div
                       key={ci}
-                      className={`pl-10 pr-3 py-1.5 text-[12.5px] cursor-pointer ${
+                      onClick={() => {
+                        if (c.l === 'Верификация Сторис') setActiveTab('verification');
+                        else if (c.l === 'Сторис') setActiveTab('list');
+                      }}
+                      className={`pl-10 pr-3 py-1.5 text-[12.5px] cursor-pointer flex items-center justify-between ${
                         c.active
                           ? 'bg-sky-100 text-blue-700 font-semibold'
                           : 'text-slate-600 hover:bg-slate-100'
                       }`}
                     >
-                      {c.l}
+                      <span>{c.l}</span>
+                      {c.badge && (
+                        <span className="bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+                          {c.badge}
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -3555,6 +3598,20 @@ export default function StoriesAdmin() {
           >
             <BarChart3 size={13} /> Аналитика
           </button>
+          {/* Кнопка «Верификация» — открывает раздел модерации */}
+          <button
+            onClick={() => setActiveTab(activeTab === 'verification' ? 'list' : 'verification')}
+            className={`px-3.5 py-1.5 text-[12px] font-bold uppercase tracking-wide rounded flex items-center gap-1.5 transition border relative ${
+              activeTab === 'verification'
+                ? 'bg-amber-600 border-amber-600 text-white hover:bg-amber-700'
+                : 'bg-white border-slate-300 text-slate-700 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-700'
+            }`}
+          >
+            <ClipboardCheck size={13} /> Верификация
+            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none ${
+              activeTab === 'verification' ? 'bg-white/25 text-white' : 'bg-amber-500 text-white'
+            }`}>3</span>
+          </button>
           <div className="flex-1 min-w-[200px] relative">
             <input
               placeholder="Введите заголовок для поиска"
@@ -3584,6 +3641,19 @@ export default function StoriesAdmin() {
               <AnalyticsView />
             </div>
           )}
+          {activeTab === 'verification' && (
+            <div>
+              <div className="px-5 pt-3 pb-2 flex items-center gap-2">
+                <button
+                  onClick={() => setActiveTab('list')}
+                  className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                >
+                  <ChevronRight size={12} className="rotate-180" /> Назад к списку историй
+                </button>
+              </div>
+              <VerificationView showToast={showToast} />
+            </div>
+          )}
         </div>
       </main>
 
@@ -3610,4 +3680,3 @@ export default function StoriesAdmin() {
     </div>
   );
 }
-
