@@ -51,12 +51,14 @@ const skipRateData = [
 ];
 
 const storyList = [
-  { id: 1, title: 'Срочные смены в Москве — х1.5', status: 'active', views: 64200, ctr: '14.2%', city: 'Москва', cover: 'bg-gradient-to-br from-orange-400 to-rose-500' },
-  { id: 2, title: 'Новые правила выплат', status: 'active', views: 98180, ctr: '12.4%', city: 'Все', cover: 'bg-gradient-to-br from-violet-500 to-indigo-600' },
-  { id: 3, title: 'Новые объекты в Краснодаре', status: 'scheduled', views: 0, ctr: '—', city: 'Краснодар', cover: 'bg-gradient-to-br from-emerald-400 to-teal-600' },
-  { id: 4, title: 'Реферальная программа +2000₽', status: 'active', views: 52410, ctr: '18.7%', city: 'Все', cover: 'bg-gradient-to-br from-amber-400 to-orange-500' },
-  { id: 5, title: 'Инструкция по выходу на смену', status: 'archived', views: 168340, ctr: '8.1%', city: 'Все', cover: 'bg-gradient-to-br from-sky-400 to-blue-600' },
-  { id: 6, title: 'Промо-кампания для новичков', status: 'draft', views: 0, ctr: '—', city: '—', cover: 'bg-gradient-to-br from-slate-300 to-slate-500' }
+  { id: 1, title: 'Срочные смены в Москве — х1.5', status: 'active', views: 64200, ctr: '14.2%', city: 'Москва', cover: 'bg-gradient-to-br from-orange-400 to-rose-500', publishedAt: '12.05.2026 09:00' },
+  { id: 2, title: 'Новые правила выплат', status: 'active', views: 98180, ctr: '12.4%', city: 'Все', cover: 'bg-gradient-to-br from-violet-500 to-indigo-600', publishedAt: '10.05.2026 11:30' },
+  { id: 3, title: 'Новые объекты в Краснодаре', status: 'scheduled', views: 0, ctr: '—', city: 'Краснодар', cover: 'bg-gradient-to-br from-emerald-400 to-teal-600', scheduledAt: '15.05.2026 09:00' },
+  { id: 4, title: 'Реферальная программа +2000₽', status: 'active', views: 52410, ctr: '18.7%', city: 'Все', cover: 'bg-gradient-to-br from-amber-400 to-orange-500', publishedAt: '08.05.2026 14:15' },
+  { id: 5, title: 'Инструкция по выходу на смену', status: 'archived', views: 168340, ctr: '8.1%', city: 'Все', cover: 'bg-gradient-to-br from-sky-400 to-blue-600', publishedAt: '01.04.2026 10:00', archivedAt: '08.05.2026 18:00' },
+  { id: 6, title: 'Промо-кампания для новичков', status: 'draft', views: 0, ctr: '—', city: '—', cover: 'bg-gradient-to-br from-slate-300 to-slate-500', updatedAt: '11.05.2026 16:42' },
+  { id: 7, title: 'Бонусы за смены в выходные', status: 'scheduled', views: 0, ctr: '—', city: 'Москва', cover: 'bg-gradient-to-br from-pink-400 to-fuchsia-500', scheduledAt: '17.05.2026 18:00' },
+  { id: 8, title: 'Чек-лист для новичков', status: 'draft', views: 0, ctr: '—', city: '—', cover: 'bg-gradient-to-br from-cyan-400 to-blue-500', updatedAt: '12.05.2026 12:08' }
 ];
 
 // Stories ожидающие верификации
@@ -2309,11 +2311,17 @@ function UsersTable() {
 }
 
 // ============ List Tab ============
-function ListView({ showToast }) {
+function ListView({ showToast, onEditStory }) {
   const [search, setSearch] = useState('');
-  const [storyOrder, setStoryOrder] = useState([1, 2, 3, 4, 5, 6]); // story IDs in display order
+  // Локальный список сторис — используется для дублирования/архивирования из UI
+  const [stories, setStories] = useState(storyList);
+  // Активный фильтр: all | active | scheduled | draft | archived
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [storyOrder, setStoryOrder] = useState([1, 2, 3, 4, 5, 6, 7]); // story IDs in display order
   // Управление порядком и ряд кружочков скрыты по умолчанию — раскрываются по клику
   const [showOrderControls, setShowOrderControls] = useState(false);
+  // Подтверждение архивации
+  const [archiveConfirm, setArchiveConfirm] = useState(null);
 
   const statusMeta = {
     active: { l: 'Активна', c: 'bg-emerald-100 text-emerald-700' },
@@ -2322,10 +2330,52 @@ function ListView({ showToast }) {
     draft: { l: 'Черновик', c: 'bg-amber-100 text-amber-700' }
   };
 
-  const activeStories = storyList.filter(s => s.status === 'active' || s.status === 'scheduled');
+  const activeStories = stories.filter(s => s.status === 'active' || s.status === 'scheduled');
   const orderedActive = storyOrder
     .map(id => activeStories.find(s => s.id === id))
     .filter(Boolean);
+
+  // Действия: редактирование, дублирование, архивирование, восстановление
+  const handleEdit = (s) => {
+    if (onEditStory) onEditStory(s);
+    showToast(`Редактирование: ${s.title}`);
+  };
+  const handleDuplicate = (s) => {
+    const newId = Math.max(...stories.map(x => x.id)) + 1;
+    const copy = {
+      ...s,
+      id: newId,
+      title: `${s.title} (копия)`,
+      status: 'draft',
+      views: 0,
+      ctr: '—',
+      publishedAt: undefined,
+      scheduledAt: undefined,
+      updatedAt: new Date().toLocaleString('ru'),
+      archivedAt: undefined
+    };
+    setStories([copy, ...stories]);
+    showToast(`Сторис «${s.title}» продублирована в черновики`);
+  };
+  const handleArchive = (s) => {
+    setArchiveConfirm(s);
+  };
+  const confirmArchive = () => {
+    if (!archiveConfirm) return;
+    setStories(stories.map(x =>
+      x.id === archiveConfirm.id
+        ? { ...x, status: 'archived', archivedAt: new Date().toLocaleString('ru') }
+        : x
+    ));
+    showToast(`«${archiveConfirm.title}» перенесено в архив`);
+    setArchiveConfirm(null);
+  };
+  const handleRestore = (s) => {
+    setStories(stories.map(x =>
+      x.id === s.id ? { ...x, status: 'active', archivedAt: undefined } : x
+    ));
+    showToast(`«${s.title}» восстановлена из архива`);
+  };
 
   const moveUp = (id) => {
     const idx = storyOrder.indexOf(id);
@@ -2348,7 +2398,26 @@ function ListView({ showToast }) {
     showToast('Сторис закреплена первой');
   };
 
-  const filtered = storyList.filter(s => s.title.toLowerCase().includes(search.toLowerCase()));
+  const statusFilters = [
+    { v: 'all', l: 'Все' },
+    { v: 'active', l: 'Активные' },
+    { v: 'scheduled', l: 'Запланированные' },
+    { v: 'draft', l: 'Черновики' },
+    { v: 'archived', l: 'Архив' }
+  ];
+
+  // Считаем количество сторис по статусу — для бейджа на чипе
+  const statusCounts = stories.reduce((acc, s) => {
+    acc[s.status] = (acc[s.status] || 0) + 1;
+    acc.all = (acc.all || 0) + 1;
+    return acc;
+  }, {});
+
+  const filtered = stories.filter(s => {
+    const matchSearch = s.title.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = statusFilter === 'all' || s.status === statusFilter;
+    return matchSearch && matchStatus;
+  });
 
   // Mock: story 1 is urgent, story 2 is viewed (faded), others normal
   const circleState = (s) => {
@@ -2488,9 +2557,9 @@ function ListView({ showToast }) {
                     <ChevronRight size={14} className="rotate-90" />
                   </button>
                   <div className="w-px h-5 bg-slate-200 mx-1" />
-                  <IconBtn icon={<Edit3 size={13} />} onClick={() => showToast(`Редактирование: ${s.title}`)} />
-                  <IconBtn icon={<Copy size={13} />} onClick={() => showToast('Сторис продублирована')} />
-                  <IconBtn icon={<Archive size={13} />} onClick={() => showToast('Перенесено в архив')} />
+                  <IconBtn icon={<Edit3 size={13} />} onClick={() => handleEdit(s)} title="Редактировать" />
+                  <IconBtn icon={<Copy size={13} />} onClick={() => handleDuplicate(s)} title="Дублировать" />
+                  <IconBtn icon={<Archive size={13} />} onClick={() => handleArchive(s)} title="В архив" />
                 </div>
               </div>
             );
@@ -2511,17 +2580,43 @@ function ListView({ showToast }) {
             className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
           />
         </div>
-        {['Все', 'Активные', 'Запланированные', 'Черновики', 'Архив'].map((f, i) => (
+        {statusFilters.map(f => (
           <button
-            key={i}
-            className={`px-3 py-2 rounded-lg text-xs font-medium transition ${
-              i === 0 ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            key={f.v}
+            onClick={() => setStatusFilter(f.v)}
+            className={`px-3 py-2 rounded-lg text-xs font-medium transition flex items-center gap-1.5 ${
+              statusFilter === f.v
+                ? 'bg-slate-900 text-white'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
-          >{f}</button>
+          >
+            {f.l}
+            <span className={`px-1.5 rounded-full text-[10px] font-bold tabular-nums ${
+              statusFilter === f.v ? 'bg-white/20' : 'bg-slate-100'
+            }`}>{statusCounts[f.v] || 0}</span>
+          </button>
         ))}
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        {filtered.length === 0 ? (
+          <div className="p-10 text-center">
+            <div className="text-4xl mb-2">🔎</div>
+            <div className="text-sm font-bold text-slate-800">Ничего не найдено</div>
+            <div className="text-xs text-slate-500 mt-1">
+              {search
+                ? `По запросу «${search}» в категории «${statusFilters.find(f => f.v === statusFilter)?.l}» сторис нет`
+                : `В категории «${statusFilters.find(f => f.v === statusFilter)?.l}» сторис пока нет`
+              }
+            </div>
+            {(search || statusFilter !== 'all') && (
+              <button
+                onClick={() => { setSearch(''); setStatusFilter('all'); }}
+                className="mt-3 text-xs text-blue-600 hover:underline"
+              >Сбросить фильтры</button>
+            )}
+          </div>
+        ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[720px]">
             <thead className="bg-slate-50">
@@ -2529,6 +2624,7 @@ function ListView({ showToast }) {
                 <th className="text-left font-medium px-4 py-3">Сторис</th>
                 <th className="text-left font-medium px-4 py-3">Статус</th>
                 <th className="text-left font-medium px-4 py-3">Город</th>
+                <th className="text-left font-medium px-4 py-3">Дата</th>
                 <th className="text-right font-medium px-4 py-3">Просмотры</th>
                 <th className="text-right font-medium px-4 py-3">CTR</th>
                 <th className="px-4 py-3"></th>
@@ -2558,13 +2654,33 @@ function ListView({ showToast }) {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-slate-600">{s.city}</td>
+                  <td className="px-4 py-3 text-xs text-slate-600">
+                    {s.status === 'scheduled' && s.scheduledAt && (
+                      <span className="inline-flex items-center gap-1 text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md font-medium">
+                        <Clock size={11} /> {s.scheduledAt}
+                      </span>
+                    )}
+                    {s.status === 'active' && s.publishedAt && (
+                      <span className="text-slate-500">Опубл. {s.publishedAt}</span>
+                    )}
+                    {s.status === 'archived' && s.archivedAt && (
+                      <span className="text-slate-400">В архиве с {s.archivedAt}</span>
+                    )}
+                    {s.status === 'draft' && (
+                      <span className="text-amber-700">Изм. {s.updatedAt || '—'}</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-right tabular-nums">{s.views.toLocaleString('ru')}</td>
                   <td className="px-4 py-3 text-right">{s.ctr}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-1">
-                      <IconBtn icon={<Edit3 size={14} />} onClick={() => showToast(`Редактирование: ${s.title}`)} />
-                      <IconBtn icon={<Copy size={14} />} onClick={() => showToast('Сторис продублирована')} />
-                      <IconBtn icon={<Archive size={14} />} onClick={() => showToast('Перенесено в архив')} />
+                      <IconBtn icon={<Edit3 size={14} />} onClick={() => handleEdit(s)} title="Редактировать" />
+                      <IconBtn icon={<Copy size={14} />} onClick={() => handleDuplicate(s)} title="Дублировать" />
+                      {s.status === 'archived' ? (
+                        <IconBtn icon={<UserPlus size={14} />} onClick={() => handleRestore(s)} title="Восстановить из архива" />
+                      ) : (
+                        <IconBtn icon={<Archive size={14} />} onClick={() => handleArchive(s)} title="В архив" />
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -2572,7 +2688,42 @@ function ListView({ showToast }) {
             </tbody>
           </table>
         </div>
+        )}
       </div>
+
+      {/* Модалка подтверждения архивации */}
+      {archiveConfirm && (
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4" onClick={() => setArchiveConfirm(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-slate-200 flex items-start gap-3">
+              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Archive size={20} className="text-amber-600" />
+              </div>
+              <div>
+                <div className="font-bold text-base text-slate-900">Перенести в архив?</div>
+                <div className="text-xs text-slate-500 mt-0.5">«{archiveConfirm.title}»</div>
+              </div>
+            </div>
+            <div className="px-6 py-4 text-sm text-slate-600 leading-snug">
+              {archiveConfirm.status === 'active'
+                ? 'Сторис будет снята с показа в приложении. История просмотров и метрики сохранятся — их можно посмотреть в Аналитике. Восстановить из архива можно в любой момент.'
+                : 'Сторис будет перенесена в архив. Восстановить можно в любой момент.'}
+            </div>
+            <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+              <button
+                onClick={() => setArchiveConfirm(null)}
+                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800"
+              >Отмена</button>
+              <button
+                onClick={confirmArchive}
+                className="px-4 py-2 text-sm font-bold text-white bg-amber-600 rounded-lg hover:bg-amber-700 flex items-center gap-2"
+              >
+                <Archive size={14} /> Перенести в архив
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2844,9 +2995,13 @@ function KPICard({ label, value, delta, icon, color, hint }) {
   );
 }
 
-function IconBtn({ icon, onClick }) {
+function IconBtn({ icon, onClick, title }) {
   return (
-    <button onClick={onClick} className="p-1.5 rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition">
+    <button
+      onClick={onClick}
+      title={title}
+      className="p-1.5 rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
+    >
       {icon}
     </button>
   );
@@ -3882,7 +4037,22 @@ export default function StoriesAdmin() {
           {activeTab === 'list' && (
             <div className="p-4 sm:p-5 space-y-5">
               <PastStoriesStatsBar />
-              <ListView showToast={showToast} />
+              <ListView showToast={showToast} onEditStory={(s) => {
+                // Открываем редактор как «черновик» — переиспользуем существующий поток
+                setEditorMode('draft');
+                setEditorTemplate({
+                  title: s.title,
+                  body: '',
+                  description: '',
+                  cover: s.cover,
+                  targetCities: [s.city],
+                  hasContact: false,
+                  hasCopay: false,
+                  progress: 100,
+                  savedAt: s.publishedAt || s.scheduledAt || s.updatedAt || 'сегодня'
+                });
+                setEditorOpen(true);
+              }} />
             </div>
           )}
           {activeTab === 'analytics' && (
