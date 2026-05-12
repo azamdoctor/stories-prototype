@@ -440,8 +440,10 @@ function StoryFullscreenView({ title, description, links, hasContact, contacts, 
 
 // ============ Editor Tab ============
 function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
-  // mode: 'new' = чистая форма; 'template' = шаблон с автозаполнением часто используемых функций
-  const isTemplate = mode === 'template';
+  // mode: 'new' = чистая форма; 'template' = шаблон с автозаполнением часто используемых функций;
+  //       'draft' = продолжение последнего сохранённого черновика (рендерится как шаблон).
+  const isTemplate = mode === 'template' || mode === 'draft';
+  const isDraft = mode === 'draft';
   const t = templateData || {};
 
   const [title, setTitle] = useState(isTemplate ? (t.title || '') : '');
@@ -473,8 +475,31 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
   const [wasInAppPeriod, setWasInAppPeriod] = useState('7d');
   const [targetMode, setTargetMode] = useState('filters');
   const [uploadedFile, setUploadedFile] = useState(null);
-  // Профессия — единственный фильтр, оставленный над расчётным охватом
+  // Профессия
   const [profession, setProfession] = useState('Любая');
+  // Расширенные фильтры из ERP — теперь не отдельным блоком, а в общем потоке настроек.
+  // Фильтр по рекрутеру удалён согласно требованию.
+  const [extFilters, setExtFilters] = useState({
+    citizenship: 'any',
+    gender: 'any',
+    ageFrom: 18,
+    ageTo: 65,
+    metroStation: '',
+    documentType: 'any',
+    samozanyatStatus: 'active',
+    completedFrom: 0,
+    completedTo: 3000,
+    completedPeriod: 'all',
+    minRating: 0,
+    paymentBan: 'any',
+    blacklistedClient: '',
+    operator: 'any',
+    online: false,
+    notBanned: true,
+    vahta: false,
+    unpaidFineLastMonth: false,
+    paymentDataVerified: 'any'
+  });
   const [autoDeactivate, setAutoDeactivate] = useState(isTemplate);
   const [autoDeactivateDate, setAutoDeactivateDate] = useState('2026-05-09T22:00');
   const [autoDeactivateOnBrokenLink, setAutoDeactivateOnBrokenLink] = useState(isTemplate);
@@ -508,6 +533,7 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
   ];
   const professionList = ['Любая', 'Курьер', 'Складской работник', 'Уборщик', 'Грузчик', 'Кассир', 'Сборщик заказов', 'Комплектовщик'];
   const subPartners = ['Все объекты', 'Москва-Север', 'Москва-Юг', 'Дарк-стор Хамовники', 'РЦ Подольск'];
+  const operators = ['Все операторы', 'Анна Петрова', 'Михаил Иванов', 'Елена Смирнова', 'Дмитрий Козлов'];
   const quickSegments = [
     { v: 'one_task', l: 'Выполнили 1 задание', icon: '🆕' },
     { v: 'less_5', l: 'Меньше 5 смен', icon: '🌱' },
@@ -645,29 +671,41 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
 
       {/* Settings column — справа, скроллится */}
       <div className="space-y-5 min-w-0">
-        {/* Quick-access bar — кнопки быстрого доступа к настройкам */}
+        {/* Quick-access bar — кнопки быстрого доступа к настройкам (в 2 ряда) */}
         <div className="sticky top-0 z-20 bg-slate-50/95 backdrop-blur -mx-6 px-6 py-2.5 border-b border-slate-200">
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
-            <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold flex-shrink-0 mr-1">Быстрый переход:</span>
-            {quickSections.map(s => (
-              <button
-                key={s.id}
-                onClick={() => scrollToSection(s.id)}
-                className="flex-shrink-0 px-2.5 py-1 rounded-full bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 text-[11px] font-medium text-slate-600 transition flex items-center gap-1"
-                title={`Перейти к разделу: ${s.label}`}
-              >
-                <span>{s.icon}</span>{s.label}
-              </button>
-            ))}
+          <div className="flex items-start gap-2">
+            <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold flex-shrink-0 mt-1.5">Быстрый переход:</span>
+            <div className="flex-1 flex flex-wrap gap-1.5">
+              {quickSections.map(s => (
+                <button
+                  key={s.id}
+                  onClick={() => scrollToSection(s.id)}
+                  className="px-2.5 py-1 rounded-full bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 text-[11px] font-medium text-slate-600 transition flex items-center gap-1"
+                  title={`Перейти к разделу: ${s.label}`}
+                >
+                  <span>{s.icon}</span>{s.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {isTemplate && (
+        {isTemplate && !isDraft && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-start gap-2.5">
             <Sparkles size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
             <div className="text-xs text-blue-900 leading-snug">
               <div className="font-bold mb-0.5">Загружен шаблон{t.name ? ` «${t.name}»` : ''}</div>
               <div className="text-blue-800">Самые часто используемые настройки уже включены — отредактируйте под себя или оставьте как есть.</div>
+            </div>
+          </div>
+        )}
+
+        {isDraft && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2.5">
+            <Save size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
+            <div className="text-xs text-amber-900 leading-snug">
+              <div className="font-bold mb-0.5">Восстановлен последний черновик{t.title ? ` «${t.title}»` : ''}</div>
+              <div className="text-amber-800">Все ранее заполненные поля восстановлены. Заполнено {t.progress || 0}% — допишите и отправьте на верификацию. Сохранение: {t.savedAt || '—'}.</div>
             </div>
           </div>
         )}
@@ -1154,16 +1192,180 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
                 <span>Тип занятости: <b className="text-slate-700">только самозанятые</b> (системно зашит в платформу — другие типы не используются)</span>
               </div>
 
-              {/* Расширенные фильтры ERP полностью убраны по решению команды — оставлены только базовые таргетинги выше */}
-              <div className="mt-4 bg-slate-50 border border-slate-200 rounded-lg p-3 flex items-start gap-2 text-[11px] text-slate-600">
-                <ShieldCheck size={13} className="text-slate-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <div className="font-semibold text-slate-700 mb-0.5">Расширенные фильтры из ERP отключены</div>
-                  <div className="leading-snug">Для сторис используются только базовые сегменты: город, партнёр/объект, профессия, быстрые сегменты и список из Excel. Это упрощает запуск и снижает риск ошибок.</div>
+              {/* Расширенные фильтры из ERP — теперь в общем потоке, без рекрутера */}
+              <div className="mt-2 pt-3 border-t border-slate-100">
+                <div className="text-[11px] uppercase tracking-wider font-bold text-slate-500 mb-3 flex items-center gap-1.5">
+                  <ShieldCheck size={12} className="text-blue-600" /> Дополнительные фильтры из ERP
                 </div>
-              </div>
 
-              {/* (старый блок ERP-аккордеонов удалён) */}
+                <Field label="Гражданство">
+                  <select value={extFilters.citizenship}
+                    onChange={e => setExtFilters({ ...extFilters, citizenship: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+                    <option value="any">Любое</option>
+                    <option value="RU">РФ</option>
+                    <option value="BY">Беларусь</option>
+                    <option value="KZ">Казахстан</option>
+                    <option value="UZ">Узбекистан</option>
+                    <option value="KG">Кыргызстан</option>
+                    <option value="AM">Армения</option>
+                    <option value="TJ">Таджикистан</option>
+                  </select>
+                </Field>
+
+                <Field label="Пол">
+                  <div className="flex gap-2">
+                    {[{ v: 'any', l: 'Любой' }, { v: 'M', l: 'Мужской' }, { v: 'F', l: 'Женский' }].map(g => (
+                      <button
+                        key={g.v}
+                        onClick={() => setExtFilters({ ...extFilters, gender: g.v })}
+                        className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border transition ${
+                          extFilters.gender === g.v
+                            ? 'bg-blue-600 border-blue-600 text-white'
+                            : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                        }`}
+                      >{g.l}</button>
+                    ))}
+                  </div>
+                </Field>
+
+                <Field label={`Возраст: ${extFilters.ageFrom}–${extFilters.ageTo} лет`}>
+                  <div className="flex items-center gap-2">
+                    <input type="number" min="14" max="80" value={extFilters.ageFrom}
+                      onChange={e => setExtFilters({ ...extFilters, ageFrom: +e.target.value })}
+                      className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm" />
+                    <span className="text-slate-400">—</span>
+                    <input type="number" min="14" max="80" value={extFilters.ageTo}
+                      onChange={e => setExtFilters({ ...extFilters, ageTo: +e.target.value })}
+                      className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm" />
+                  </div>
+                </Field>
+
+                <Field label="Станция метро" hint="Только Москва и СПб">
+                  <input type="text" placeholder="например: Хамовники"
+                    value={extFilters.metroStation}
+                    onChange={e => setExtFilters({ ...extFilters, metroStation: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30" />
+                </Field>
+
+                <Field label="Тип документа">
+                  <select value={extFilters.documentType}
+                    onChange={e => setExtFilters({ ...extFilters, documentType: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+                    <option value="any">Любой</option>
+                    <option value="passport_rf">Паспорт РФ</option>
+                    <option value="foreign">Иностранный паспорт</option>
+                    <option value="patent">Патент на работу</option>
+                    <option value="rvp">РВП</option>
+                    <option value="vnj">ВНЖ</option>
+                  </select>
+                </Field>
+
+                <Field label="Статус самозанятости">
+                  <select value={extFilters.samozanyatStatus}
+                    onChange={e => setExtFilters({ ...extFilters, samozanyatStatus: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+                    <option value="active">Активная (по умолчанию)</option>
+                    <option value="suspended">Приостановлена</option>
+                    <option value="all">Любой статус</option>
+                  </select>
+                </Field>
+
+                <Field label={`Кол-во выполненных смен: ${extFilters.completedFrom}–${extFilters.completedTo}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <input type="number" min="0" value={extFilters.completedFrom}
+                      onChange={e => setExtFilters({ ...extFilters, completedFrom: +e.target.value })}
+                      className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm" />
+                    <span className="text-slate-400">—</span>
+                    <input type="number" min="0" value={extFilters.completedTo}
+                      onChange={e => setExtFilters({ ...extFilters, completedTo: +e.target.value })}
+                      className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-[11px] text-slate-500 flex-shrink-0">За период:</label>
+                    <select value={extFilters.completedPeriod}
+                      onChange={e => setExtFilters({ ...extFilters, completedPeriod: e.target.value })}
+                      className="flex-1 px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs">
+                      <option value="all">За всё время</option>
+                      <option value="7d">За 7 дней</option>
+                      <option value="30d">За 30 дней</option>
+                      <option value="90d">За 90 дней</option>
+                      <option value="365d">За год</option>
+                    </select>
+                  </div>
+                </Field>
+
+                <Field label={`Минимальный рейтинг: ${extFilters.minRating.toFixed(1)} / 10`}>
+                  <div className="flex items-center gap-3">
+                    <input type="range" min="0" max="10" step="0.1"
+                      value={extFilters.minRating}
+                      onChange={e => setExtFilters({ ...extFilters, minRating: +e.target.value })}
+                      className="flex-1 accent-blue-600" />
+                    <span className="text-sm font-semibold text-slate-700 tabular-nums w-14 flex items-center gap-1 justify-end">
+                      <Star size={13} className="text-amber-500 fill-amber-500" />{extFilters.minRating.toFixed(1)}
+                    </span>
+                  </div>
+                </Field>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Field label="Запрет оплаты">
+                    <select value={extFilters.paymentBan}
+                      onChange={e => setExtFilters({ ...extFilters, paymentBan: e.target.value })}
+                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+                      <option value="any">Не учитывать</option>
+                      <option value="no">Без запрета (можно платить)</option>
+                      <option value="yes">С запретом (заблокирована оплата)</option>
+                    </select>
+                  </Field>
+
+                  <Field label="Верификация платёжных данных">
+                    <select value={extFilters.paymentDataVerified}
+                      onChange={e => setExtFilters({ ...extFilters, paymentDataVerified: e.target.value })}
+                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+                      <option value="any">Не учитывать</option>
+                      <option value="verified">Верифицирована</option>
+                      <option value="not_verified">Не верифицирована</option>
+                    </select>
+                  </Field>
+                </div>
+
+                <Field label="Чёрный список партнёра">
+                  <select value={extFilters.blacklistedClient}
+                    onChange={e => setExtFilters({ ...extFilters, blacklistedClient: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+                    <option value="">Не учитывать</option>
+                    {partners.map(p => <option key={p.id} value={p.id}>Не в ЧС: {p.short}</option>)}
+                  </select>
+                </Field>
+
+                <Field label="Оператор обработки">
+                  <select value={extFilters.operator}
+                    onChange={e => setExtFilters({ ...extFilters, operator: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+                    {operators.map(o => <option key={o} value={o === 'Все операторы' ? 'any' : o}>{o}</option>)}
+                  </select>
+                </Field>
+
+                {/* Чек-боксы — дополнительные условия */}
+                <Field label="Дополнительные условия">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 bg-slate-50 border border-slate-200 rounded-lg p-2">
+                    {[
+                      { k: 'online', l: 'Сейчас онлайн в приложении' },
+                      { k: 'notBanned', l: 'Только не забаненные' },
+                      { k: 'vahta', l: 'Открыт к вахте' },
+                      { k: 'unpaidFineLastMonth', l: 'Неоплаченный штраф за месяц' }
+                    ].map(f => (
+                      <label key={f.k} className="flex items-center gap-2 cursor-pointer p-1.5 hover:bg-white rounded-md">
+                        <input type="checkbox"
+                          checked={extFilters[f.k]}
+                          onChange={e => setExtFilters({ ...extFilters, [f.k]: e.target.checked })}
+                          className="w-4 h-4 accent-blue-600" />
+                        <span className="text-xs text-slate-700">{f.l}</span>
+                      </label>
+                    ))}
+                  </div>
+                </Field>
+              </div>
 
               {/* Reach estimate */}
               <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
@@ -2814,7 +3016,7 @@ function SettingsPanel({ onClose }) {
 // ============ Add-story choice modal ============
 // Открывается над основной СРМ при нажатии «Добавить историю».
 // Предлагает: выбрать шаблон или создать с нуля.
-function AddChoiceModal({ onClose, onPickNew, onPickTemplate }) {
+function AddChoiceModal({ onClose, onPickNew, onPickTemplate, onPickDraft, lastDraft }) {
   const [stage, setStage] = useState('choice'); // 'choice' | 'templates'
 
   const popularTemplates = [
@@ -2851,6 +3053,36 @@ function AddChoiceModal({ onClose, onPickNew, onPickTemplate }) {
         {stage === 'choice' && (
           <div className="p-6">
             <div className="text-sm text-slate-600 mb-4">Как создать новую сторис?</div>
+
+            {/* Draft continuation — показывается только если есть последний черновик */}
+            {lastDraft && (
+              <button
+                onClick={() => onPickDraft(lastDraft)}
+                className="text-left bg-gradient-to-r from-amber-50 to-white border-2 border-amber-300 hover:border-amber-500 hover:bg-amber-50 rounded-xl p-4 transition group w-full mb-3 flex items-start gap-3"
+              >
+                <div className={`${lastDraft.cover} w-14 h-20 rounded-lg flex-shrink-0 relative flex items-end p-1.5 overflow-hidden`}>
+                  <div className="text-white text-[8px] font-bold leading-tight drop-shadow line-clamp-2">{lastDraft.title || 'Без названия'}</div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[9px] font-bold text-amber-700 uppercase tracking-wider bg-amber-200 px-1.5 py-0.5 rounded">Черновик</span>
+                    <span className="text-[10px] text-slate-500">Последнее сохранение: {lastDraft.savedAt}</span>
+                  </div>
+                  <div className="font-bold text-sm text-slate-800 mb-0.5 truncate">Продолжить заполнение черновика</div>
+                  <div className="text-xs text-slate-600 truncate">«{lastDraft.title || 'Без названия'}»</div>
+                  <div className="text-[11px] text-slate-500 mt-1 line-clamp-1">{lastDraft.description || 'Описание не заполнено'}</div>
+                  <div className="flex items-center gap-2 mt-2 text-[10px] text-slate-500">
+                    <span className="flex items-center gap-0.5">📍 {lastDraft.targetCities?.join(', ') || 'Без города'}</span>
+                    <span>·</span>
+                    <span>Заполнено {lastDraft.progress}%</span>
+                  </div>
+                </div>
+                <div className="text-amber-600 group-hover:translate-x-1 transition self-center">
+                  <ChevronRight size={20} />
+                </div>
+              </button>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Template card */}
               <button
@@ -2885,7 +3117,7 @@ function AddChoiceModal({ onClose, onPickNew, onPickTemplate }) {
 
             <div className="mt-4 flex items-start gap-2 text-[11px] text-slate-500 bg-slate-50 rounded-lg p-2.5">
               <AlertCircle size={12} className="flex-shrink-0 mt-0.5" />
-              <span>В обоих режимах справа — настройки, слева — превью. Можно менять любую часть, шаблон не блокирует редактирование.</span>
+              <span>В любом режиме справа — настройки, слева — превью. Можно менять любую часть, шаблон или черновик не блокируют редактирование.</span>
             </div>
           </div>
         )}
@@ -3363,7 +3595,11 @@ function EditorOverlay({ mode, templateData, onClose, showToast }) {
         <div className="px-6 py-4 bg-blue-600 text-white flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-3">
             <div className="font-bold text-base">
-              {mode === 'template' ? `Создание истории по шаблону${templateData?.name ? ` «${templateData.name}»` : ''}` : 'Создание новой истории'}
+              {mode === 'template'
+                ? `Создание истории по шаблону${templateData?.name ? ` «${templateData.name}»` : ''}`
+                : mode === 'draft'
+                ? `Продолжение черновика${templateData?.title ? ` «${templateData.title}»` : ''}`
+                : 'Создание новой истории'}
             </div>
             <span className="px-2 py-0.5 bg-amber-200 text-amber-900 rounded-full text-[10px] font-bold uppercase tracking-wide">Черновик</span>
           </div>
@@ -3425,8 +3661,23 @@ export default function StoriesAdmin() {
   // Modal flow: «Добавить историю» → выбор → редактор-оверлей
   const [addChoiceOpen, setAddChoiceOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
-  const [editorMode, setEditorMode] = useState('new'); // 'new' | 'template'
+  const [editorMode, setEditorMode] = useState('new'); // 'new' | 'template' | 'draft'
   const [editorTemplate, setEditorTemplate] = useState(null);
+
+  // Последний несохранённый черновик — заглушка для прототипа.
+  // В проде здесь будет последний draft текущего пользователя из БД.
+  const lastDraft = {
+    id: 'draft-9001',
+    title: 'Бонус +500₽ за смены на выходные',
+    body: 'В субботу и воскресенье ставка +500₽ от РР для всех смен на складах ВкусВилла. Записаться можно прямо сейчас.',
+    description: 'В субботу и воскресенье ставка +500₽ от РР для всех смен на складах ВкусВилла. Записаться можно прямо сейчас.',
+    cover: 'bg-gradient-to-br from-amber-400 to-orange-500',
+    targetCities: ['Москва', 'Санкт-Петербург'],
+    hasContact: true,
+    hasCopay: true,
+    progress: 78,
+    savedAt: 'сегодня в 14:32'
+  };
 
   const showToast = (msg) => {
     setToast(msg);
@@ -3442,6 +3693,12 @@ export default function StoriesAdmin() {
   const openEditorWithTemplate = (tpl) => {
     setEditorMode('template');
     setEditorTemplate(tpl);
+    setAddChoiceOpen(false);
+    setEditorOpen(true);
+  };
+  const openEditorWithDraft = (draft) => {
+    setEditorMode('draft');
+    setEditorTemplate(draft);
     setAddChoiceOpen(false);
     setEditorOpen(true);
   };
@@ -3663,6 +3920,8 @@ export default function StoriesAdmin() {
           onClose={() => setAddChoiceOpen(false)}
           onPickNew={openEditorBlank}
           onPickTemplate={openEditorWithTemplate}
+          onPickDraft={openEditorWithDraft}
+          lastDraft={lastDraft}
         />
       )}
 
