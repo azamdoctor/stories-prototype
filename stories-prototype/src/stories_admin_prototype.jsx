@@ -2567,16 +2567,10 @@ function ListView({ showToast, onEditStory }) {
                     <ChevronRight size={14} className="rotate-90" />
                   </button>
                   <div className="w-px h-5 bg-slate-200 mx-1" />
-                  <IconBtn icon={<Edit3 size={13} />} onClick={() => handleEdit(s)} title="Редактировать" />
-                  <IconBtn icon={<Copy size={13} />} onClick={() => handleDuplicate(s)} title="Дублировать" />
-                  <IconBtn icon={<Archive size={13} />} onClick={() => handleArchive(s)} title="В архив" />
-                  <button
-                    onClick={() => handleDelete(s)}
-                    title="Удалить"
-                    className="p-1.5 rounded-md text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
-                  >
-                    <Trash2 size={13} />
-                  </button>
+                  <IconBtn icon={<Edit3 size={13} />} onClick={() => handleEdit(s)} title="Редактировать сторис" />
+                  <IconBtn icon={<Copy size={13} />} onClick={() => handleDuplicate(s)} title="Дублировать в черновики" />
+                  <IconBtn icon={<Archive size={13} />} onClick={() => handleArchive(s)} title="Перенести в архив" />
+                  <IconBtn icon={<Trash2 size={13} />} onClick={() => handleDelete(s)} title="Удалить безвозвратно" danger />
                 </div>
               </div>
             );
@@ -2615,7 +2609,7 @@ function ListView({ showToast, onEditStory }) {
         ))}
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200">
         {filtered.length === 0 ? (
           <div className="p-10 text-center">
             <div className="text-4xl mb-2">🔎</div>
@@ -2691,20 +2685,14 @@ function ListView({ showToast, onEditStory }) {
                   <td className="px-4 py-3 text-right">{s.ctr}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-1">
-                      <IconBtn icon={<Edit3 size={14} />} onClick={() => handleEdit(s)} title="Редактировать" />
-                      <IconBtn icon={<Copy size={14} />} onClick={() => handleDuplicate(s)} title="Дублировать" />
+                      <IconBtn icon={<Edit3 size={14} />} onClick={() => handleEdit(s)} title="Редактировать сторис" />
+                      <IconBtn icon={<Copy size={14} />} onClick={() => handleDuplicate(s)} title="Дублировать в черновики" />
                       {s.status === 'archived' ? (
                         <IconBtn icon={<UserPlus size={14} />} onClick={() => handleRestore(s)} title="Восстановить из архива" />
                       ) : (
-                        <IconBtn icon={<Archive size={14} />} onClick={() => handleArchive(s)} title="В архив" />
+                        <IconBtn icon={<Archive size={14} />} onClick={() => handleArchive(s)} title="Перенести в архив" />
                       )}
-                      <button
-                        onClick={() => handleDelete(s)}
-                        title="Удалить безвозвратно"
-                        className="p-1.5 rounded-md text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      <IconBtn icon={<Trash2 size={14} />} onClick={() => handleDelete(s)} title="Удалить безвозвратно" danger />
                     </div>
                   </td>
                 </tr>
@@ -3059,15 +3047,27 @@ function KPICard({ label, value, delta, icon, color, hint }) {
   );
 }
 
-function IconBtn({ icon, onClick, title }) {
+function IconBtn({ icon, onClick, title, danger }) {
   return (
-    <button
-      onClick={onClick}
-      title={title}
-      className="p-1.5 rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
-    >
-      {icon}
-    </button>
+    <span className="relative inline-flex group">
+      <button
+        onClick={onClick}
+        aria-label={title}
+        className={`p-1.5 rounded-md transition ${
+          danger
+            ? 'text-slate-400 hover:bg-red-50 hover:text-red-600'
+            : 'text-slate-400 hover:bg-slate-100 hover:text-slate-700'
+        }`}
+      >
+        {icon}
+      </button>
+      {title && (
+        <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-slate-900 text-white text-[11px] font-medium rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-100 z-50 shadow-lg">
+          {title}
+          <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
+        </span>
+      )}
+    </span>
   );
 }
 
