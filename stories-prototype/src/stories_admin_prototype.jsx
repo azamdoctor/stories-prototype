@@ -80,7 +80,7 @@ const pendingVerification = [
   {
     id: 102,
     title: 'Реферальная программа: +2000₽ за друга',
-    description: 'Приведи друга — получи 2000₽ после его первой задания. Бонус начисляется автоматически.',
+    description: 'Приведи друга — получи 2000₽ после его первого задания. Бонус начисляется автоматически.',
     author: 'Михаил Иванов',
     authorRole: 'Маркетолог',
     createdAt: '12.05.2026 08:45',
@@ -2763,7 +2763,7 @@ function TemplatesView({ showToast, onUseTemplate }) {
       desc: 'Приведи друга — +2000 ₽',
       cover: 'bg-gradient-to-br from-emerald-500 to-teal-600', icon: '🎁',
       title: 'Приведи друга — получи 2000 ₽',
-      body: 'Поделись приложением с друзьями. За каждого, кто выполнит первую задание, начислим 2000 ₽ на карту.',
+      body: 'Поделись приложением с друзьями. За каждого, кто выполнит первое задание, начислим 2000 ₽ на карту.',
       hasContact: false, hasCopay: false,
       uses: 24
     },
@@ -3177,7 +3177,7 @@ function AddChoiceModal({ onClose, onPickNew, onPickTemplate, onPickDraft, lastD
   const popularTemplates = [
     { id: 1, cat: 'urgent', name: 'Срочные задания — повышенная ставка', desc: 'Горящие вакансии с доплатой. Кнопка записи.', cover: 'bg-gradient-to-br from-orange-500 to-red-600', icon: '🔥', title: 'Срочно нужны люди в Москве!', body: 'У ВкусВилла на складе в Хамовниках есть задания сегодня и завтра. Ставка 2500 ₽ + 500 ₽ от РР. Нажми «Записаться».', hasContact: true, hasCopay: true, uses: 47 },
     { id: 2, cat: 'urgent', name: 'Завтрашние задания (за день)', desc: 'За сутки до даты — список открытых заданий', cover: 'bg-gradient-to-br from-amber-500 to-orange-600', icon: '⏰', title: 'Задания на завтра', body: 'Завтра у партнёров 12 открытых заданий. Ставки от 2200 ₽. Локации в описании.', hasContact: true, hasCopay: false, uses: 31 },
-    { id: 5, cat: 'promo', name: 'Реферальная программа', desc: 'Приведи друга — +2000 ₽', cover: 'bg-gradient-to-br from-emerald-500 to-teal-600', icon: '🎁', title: 'Приведи друга — получи 2000 ₽', body: 'Поделись приложением с друзьями. За каждого, кто выполнит первую задание, начислим 2000 ₽ на карту.', hasContact: false, hasCopay: false, uses: 24 },
+    { id: 5, cat: 'promo', name: 'Реферальная программа', desc: 'Приведи друга — +2000 ₽', cover: 'bg-gradient-to-br from-emerald-500 to-teal-600', icon: '🎁', title: 'Приведи друга — получи 2000 ₽', body: 'Поделись приложением с друзьями. За каждого, кто выполнит первое задание, начислим 2000 ₽ на карту.', hasContact: false, hasCopay: false, uses: 24 },
     { id: 6, cat: 'promo', name: 'Бонус за серию заданий', desc: 'Геймификация для активных', cover: 'bg-gradient-to-br from-fuchsia-500 to-pink-600', icon: '🏆', title: '5 заданий — бонус 1000 ₽', body: 'Сделайте 5 заданий на этой неделе — получите 1000 ₽ бонусом сверху.', hasContact: false, hasCopay: true, uses: 19 },
     { id: 8, cat: 'onboarding', name: 'Первая задание — инструкция', desc: 'Для новичков — что делать в день задания', cover: 'bg-gradient-to-br from-blue-500 to-indigo-600', icon: '📚', title: 'Как пройдёт ваша первая задание', body: 'Подойдите за 15 минут до начала. Возьмите паспорт. Менеджер встретит у входа и покажет, что делать.', hasContact: true, hasCopay: false, uses: 56 },
     { id: 9, cat: 'onboarding', name: 'Что взять с собой', desc: 'Чек-лист перед заданием', cover: 'bg-gradient-to-br from-slate-600 to-slate-800', icon: '✅', title: 'Чек-лист на задание', body: 'Паспорт, СНИЛС, ИНН, рабочая обувь, удобная одежда. Зарядка для телефона — на всякий случай.', hasContact: false, hasCopay: false, uses: 41 }
