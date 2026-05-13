@@ -51,13 +51,13 @@ const skipRateData = [
 ];
 
 const storyList = [
-  { id: 1, title: 'Срочные смены в Москве — х1.5', status: 'active', views: 64200, ctr: '14.2%', city: 'Москва', cover: 'bg-gradient-to-br from-orange-400 to-rose-500', publishedAt: '12.05.2026 09:00' },
+  { id: 1, title: 'Срочные задания в Москве — х1.5', status: 'active', views: 64200, ctr: '14.2%', city: 'Москва', cover: 'bg-gradient-to-br from-orange-400 to-rose-500', publishedAt: '12.05.2026 09:00' },
   { id: 2, title: 'Новые правила выплат', status: 'active', views: 98180, ctr: '12.4%', city: 'Все', cover: 'bg-gradient-to-br from-violet-500 to-indigo-600', publishedAt: '10.05.2026 11:30' },
   { id: 3, title: 'Новые объекты в Краснодаре', status: 'scheduled', views: 0, ctr: '—', city: 'Краснодар', cover: 'bg-gradient-to-br from-emerald-400 to-teal-600', scheduledAt: '15.05.2026 09:00' },
   { id: 4, title: 'Реферальная программа +2000₽', status: 'active', views: 52410, ctr: '18.7%', city: 'Все', cover: 'bg-gradient-to-br from-amber-400 to-orange-500', publishedAt: '08.05.2026 14:15' },
-  { id: 5, title: 'Инструкция по выходу на смену', status: 'archived', views: 168340, ctr: '8.1%', city: 'Все', cover: 'bg-gradient-to-br from-sky-400 to-blue-600', publishedAt: '01.04.2026 10:00', archivedAt: '08.05.2026 18:00' },
+  { id: 5, title: 'Инструкция по выходу на задание', status: 'archived', views: 168340, ctr: '8.1%', city: 'Все', cover: 'bg-gradient-to-br from-sky-400 to-blue-600', publishedAt: '01.04.2026 10:00', archivedAt: '08.05.2026 18:00' },
   { id: 6, title: 'Промо-кампания для новичков', status: 'draft', views: 0, ctr: '—', city: '—', cover: 'bg-gradient-to-br from-slate-300 to-slate-500', updatedAt: '11.05.2026 16:42' },
-  { id: 7, title: 'Бонусы за смены в выходные', status: 'scheduled', views: 0, ctr: '—', city: 'Москва', cover: 'bg-gradient-to-br from-pink-400 to-fuchsia-500', scheduledAt: '17.05.2026 18:00' },
+  { id: 7, title: 'Бонусы за задания в выходные', status: 'scheduled', views: 0, ctr: '—', city: 'Москва', cover: 'bg-gradient-to-br from-pink-400 to-fuchsia-500', scheduledAt: '17.05.2026 18:00' },
   { id: 8, title: 'Чек-лист для новичков', status: 'draft', views: 0, ctr: '—', city: '—', cover: 'bg-gradient-to-br from-cyan-400 to-blue-500', updatedAt: '12.05.2026 12:08' }
 ];
 
@@ -80,7 +80,7 @@ const pendingVerification = [
   {
     id: 102,
     title: 'Реферальная программа: +2000₽ за друга',
-    description: 'Приведи друга — получи 2000₽ после его первой смены. Бонус начисляется автоматически.',
+    description: 'Приведи друга — получи 2000₽ после его первой задания. Бонус начисляется автоматически.',
     author: 'Михаил Иванов',
     authorRole: 'Маркетолог',
     createdAt: '12.05.2026 08:45',
@@ -94,7 +94,7 @@ const pendingVerification = [
   {
     id: 103,
     title: 'Новый объект — ВкусВилл Чертаново',
-    description: 'Открылся новый дарк-стор. Нужны сборщики заказов. Смены каждый день с 7 утра.',
+    description: 'Открылся новый дарк-стор. Нужны сборщики заказов. Задания каждый день с 7 утра.',
     author: 'Елена Смирнова',
     authorRole: 'Контент-редактор',
     createdAt: '11.05.2026 18:32',
@@ -111,7 +111,7 @@ const pendingVerification = [
 const verificationHistory = [
   {
     id: 201,
-    title: 'Бонус +1000₽ за 5 смен',
+    title: 'Бонус +1000₽ за 5 заданий',
     author: 'Михаил Иванов',
     decision: 'approved',
     moderator: 'Алексей Дроздов',
@@ -131,7 +131,7 @@ const verificationHistory = [
   },
   {
     id: 203,
-    title: 'Срочные смены — Самокат',
+    title: 'Срочные задания — Самокат',
     author: 'Елена Смирнова',
     decision: 'approved',
     moderator: 'Мария Куликова',
@@ -538,9 +538,9 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
   const operators = ['Все операторы', 'Анна Петрова', 'Михаил Иванов', 'Елена Смирнова', 'Дмитрий Козлов'];
   const quickSegments = [
     { v: 'one_task', l: 'Выполнили 1 задание', icon: '🆕' },
-    { v: 'less_5', l: 'Меньше 5 смен', icon: '🌱' },
+    { v: 'less_5', l: 'Меньше 5 заданий', icon: '🌱' },
     { v: 'ten_tasks', l: 'Выполнили 10 заданий', icon: '✅' },
-    { v: 'experienced', l: '50+ смен', icon: '⭐' },
+    { v: 'experienced', l: '50+ заданий', icon: '⭐' },
     { v: 'was_in_app', l: 'Был в приложении', icon: '📱', hasPeriod: true }
   ];
   // Варианты периода для фильтра «Был в приложении»
@@ -1273,7 +1273,7 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
                   </select>
                 </Field>
 
-                <Field label={`Кол-во выполненных смен: ${extFilters.completedFrom}–${extFilters.completedTo}`}>
+                <Field label={`Кол-во выполненных заданий: ${extFilters.completedFrom}–${extFilters.completedTo}`}>
                   <div className="flex items-center gap-2 mb-2">
                     <input type="number" min="0" value={extFilters.completedFrom}
                       onChange={e => setExtFilters({ ...extFilters, completedFrom: +e.target.value })}
@@ -1633,7 +1633,7 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
                   }`}
                 >
                   <div className={`${coverColorB} aspect-[16/9] relative flex items-end p-2`}>
-                    <div className="text-white text-[10px] font-bold leading-tight line-clamp-2 drop-shadow">Срочные смены — х2 для опытных</div>
+                    <div className="text-white text-[10px] font-bold leading-tight line-clamp-2 drop-shadow">Срочные задания — х2 для опытных</div>
                     <div className="absolute top-1.5 left-1.5 bg-white/95 rounded-full px-2 py-0.5 text-[10px] font-bold text-slate-800">B</div>
                     {abVariant === 'B' && (
                       <div className="absolute top-1.5 right-1.5 bg-blue-600 rounded-full px-2 py-0.5 text-[9px] font-bold text-white uppercase tracking-wider">Редактирую</div>
@@ -1685,7 +1685,7 @@ function EditorView({ showToast, mode = 'new', templateData = null, onClose }) {
 function AnalyticsView() {
   // analyticsMode: 'overall' — общая статистика по всем сторис, 'single' — по конкретной сторис
   const [analyticsMode, setAnalyticsMode] = useState('overall');
-  const [selectedStory, setSelectedStory] = useState('Срочные смены в Москве — х1.5');
+  const [selectedStory, setSelectedStory] = useState('Срочные задания в Москве — х1.5');
   const [storyContentType, setStoryContentType] = useState('video'); // 'video' | 'image'
 
   // KPI данные для двух режимов
@@ -1796,7 +1796,7 @@ function AnalyticsView() {
         <KPICard label="Уникальные просмотры" value={kpi.uniqueViews} delta={9.8} icon={<UserCheck size={16} />} color="violet" hint="Каждый исполнитель учитывается только один раз" />
         <KPICard label="Клики по ссылкам" value={kpi.clicks} delta={8.1} icon={<MousePointerClick size={16} />} color="emerald" />
         <KPICard label="Записи" value={kpi.bookings} delta={15.7} icon={<UserPlus size={16} />} color="amber" />
-        <KPICard label="Вышли на смену" value={kpi.shifts} delta={-2.3} icon={<CheckCircle2 size={16} />} color="rose" />
+        <KPICard label="Вышли на задание" value={kpi.shifts} delta={-2.3} icon={<CheckCircle2 size={16} />} color="rose" />
         <KPICard label="Конверсия V→Запись" value={kpi.conv} delta={3.4} icon={<TrendingUp size={16} />} color="blue" />
       </div>
 
@@ -1837,13 +1837,13 @@ function AnalyticsView() {
       </Card>
 
       {/* Funnel */}
-      <Card title="Воронка: от просмотра до выхода на смену" icon={<Layers size={16} />}>
+      <Card title="Воронка: от просмотра до выхода на задание" icon={<Layers size={16} />}>
         <div className="space-y-2">
           {[
             { l: 'Просмотры', v: 284510, w: 100, c: 'bg-blue-500' },
             { l: 'Клики по ссылке', v: 38960, w: 13.7, c: 'bg-violet-500' },
             { l: 'Записались', v: 6893, w: 2.4, c: 'bg-emerald-500' },
-            { l: 'Вышли на смену', v: 5175, w: 1.8, c: 'bg-amber-500' }
+            { l: 'Вышли на задание', v: 5175, w: 1.8, c: 'bg-amber-500' }
           ].map((s, i) => (
             <div key={i} className="flex items-center gap-3">
               <div className="w-32 text-xs text-slate-600 font-medium flex-shrink-0">{s.l}</div>
@@ -1925,9 +1925,9 @@ function AnalyticsView() {
           <Card title="Топ сторис по уникальным просмотрам" icon={<TrendingUp size={16} />}>
             <div className="space-y-2">
               {[
-                { name: 'Инструкция по выходу на смену', uniq: 142340, color: 'bg-sky-500' },
+                { name: 'Инструкция по выходу на задание', uniq: 142340, color: 'bg-sky-500' },
                 { name: 'Новые правила выплат', uniq: 98180, color: 'bg-violet-500' },
-                { name: 'Срочные смены в Москве — х1.5', uniq: 64200, color: 'bg-orange-500' },
+                { name: 'Срочные задания в Москве — х1.5', uniq: 64200, color: 'bg-orange-500' },
                 { name: 'Реферальная программа +2000₽', uniq: 52410, color: 'bg-amber-500' },
                 { name: 'Новые объекты в Краснодаре', uniq: 31250, color: 'bg-emerald-500' }
               ].map((s, i) => (
@@ -2104,10 +2104,10 @@ function AnalyticsView() {
             </thead>
             <tbody className="text-sm">
               {[
-                { t: 'Срочные смены в Москве — х1.5', v: 8420, uniq: 7240, ctr: 14.2, b: 312, cost: 84, roi: 4.8 },
+                { t: 'Срочные задания в Москве — х1.5', v: 8420, uniq: 7240, ctr: 14.2, b: 312, cost: 84, roi: 4.8 },
                 { t: 'Реферальная программа +500₽', v: 6510, uniq: 5980, ctr: 18.7, b: 198, cost: 62, roi: 6.1 },
                 { t: 'Новые правила выплат', v: 12180, uniq: 9210, ctr: 5.4, b: 156, cost: 95, roi: 3.1 },
-                { t: 'Инструкция по выходу на смену', v: 21340, uniq: 14920, ctr: 8.1, b: 145, cost: 110, roi: 2.4 }
+                { t: 'Инструкция по выходу на задание', v: 21340, uniq: 14920, ctr: 8.1, b: 145, cost: 110, roi: 2.4 }
               ].map((r, i) => (
                 <tr key={i} className="border-t border-slate-100 hover:bg-slate-50">
                   <td className="px-4 py-2.5 font-medium text-slate-800">{r.t}</td>
@@ -2235,7 +2235,7 @@ function UsersTable() {
               <th className="text-left font-medium px-3 py-2">ФИО</th>
               <th className="text-left font-medium px-3 py-2">Телефон</th>
               <th className="text-left font-medium px-3 py-2">Город</th>
-              <th className="text-right font-medium px-3 py-2">Смен</th>
+              <th className="text-right font-medium px-3 py-2">Заданий</th>
               <th className="text-right font-medium px-3 py-2">★</th>
               <th className="text-center font-medium px-3 py-2">1-й просмотр</th>
               <th className="text-center font-medium px-3 py-2">Всего открытий</th>
@@ -2734,27 +2734,27 @@ function TemplatesView({ showToast, onUseTemplate }) {
 
   const categories = [
     { v: 'all', l: 'Все', count: 7 },
-    { v: 'urgent', l: 'Срочные смены', count: 2, icon: '🔥' },
+    { v: 'urgent', l: 'Срочные задания', count: 2, icon: '🔥' },
     { v: 'promo', l: 'Акции', count: 3, icon: '🎁' },
     { v: 'onboarding', l: 'Онбординг', count: 2, icon: '📚' }
   ];
 
   const templates = [
     {
-      id: 1, cat: 'urgent', name: 'Срочные смены — повышенная ставка',
+      id: 1, cat: 'urgent', name: 'Срочные задания — повышенная ставка',
       desc: 'Горящие вакансии с доплатой от РР. Кнопка записи.',
       cover: 'bg-gradient-to-br from-orange-500 to-red-600', icon: '🔥',
       title: 'Срочно нужны люди в Москве!',
-      body: 'У ВкусВилла на складе в Хамовниках есть смены сегодня и завтра. Ставка 2500 ₽ + 500 ₽ от РР. Нажми «Записаться».',
+      body: 'У ВкусВилла на складе в Хамовниках есть задания сегодня и завтра. Ставка 2500 ₽ + 500 ₽ от РР. Нажми «Записаться».',
       hasContact: true, hasCopay: true,
       uses: 47
     },
     {
-      id: 2, cat: 'urgent', name: 'Завтрашние смены (за день)',
-      desc: 'За сутки до даты — список открытых смен',
+      id: 2, cat: 'urgent', name: 'Завтрашние задания (за день)',
+      desc: 'За сутки до даты — список открытых заданий',
       cover: 'bg-gradient-to-br from-amber-500 to-orange-600', icon: '⏰',
-      title: 'Смены на завтра',
-      body: 'Завтра у партнёров 12 открытых смен. Ставки от 2200 ₽. Локации в описании.',
+      title: 'Задания на завтра',
+      body: 'Завтра у партнёров 12 открытых заданий. Ставки от 2200 ₽. Локации в описании.',
       hasContact: true, hasCopay: false,
       uses: 31
     },
@@ -2763,16 +2763,16 @@ function TemplatesView({ showToast, onUseTemplate }) {
       desc: 'Приведи друга — +2000 ₽',
       cover: 'bg-gradient-to-br from-emerald-500 to-teal-600', icon: '🎁',
       title: 'Приведи друга — получи 2000 ₽',
-      body: 'Поделись приложением с друзьями. За каждого, кто выполнит первую смену, начислим 2000 ₽ на карту.',
+      body: 'Поделись приложением с друзьями. За каждого, кто выполнит первую задание, начислим 2000 ₽ на карту.',
       hasContact: false, hasCopay: false,
       uses: 24
     },
     {
-      id: 6, cat: 'promo', name: 'Бонус за серию смен',
+      id: 6, cat: 'promo', name: 'Бонус за серию заданий',
       desc: 'Геймификация для активных',
       cover: 'bg-gradient-to-br from-fuchsia-500 to-pink-600', icon: '🏆',
-      title: '5 смен — бонус 1000 ₽',
-      body: 'Сделайте 5 смен на этой неделе — получите 1000 ₽ бонусом сверху.',
+      title: '5 заданий — бонус 1000 ₽',
+      body: 'Сделайте 5 заданий на этой неделе — получите 1000 ₽ бонусом сверху.',
       hasContact: false, hasCopay: true,
       uses: 19
     },
@@ -2780,25 +2780,25 @@ function TemplatesView({ showToast, onUseTemplate }) {
       id: 7, cat: 'promo', name: 'Возврат активной аудитории',
       desc: 'Для тех, кто давно не заходил',
       cover: 'bg-gradient-to-br from-cyan-500 to-blue-600', icon: '👋',
-      title: 'Соскучились по сменам?',
-      body: 'У наших партнёров есть смены со ставкой от 2500 ₽ + бонус 300 ₽ за возврат к работе.',
+      title: 'Соскучились по заданиям?',
+      body: 'У наших партнёров есть задания со ставкой от 2500 ₽ + бонус 300 ₽ за возврат к работе.',
       hasContact: true, hasCopay: true,
       uses: 8
     },
     {
-      id: 8, cat: 'onboarding', name: 'Первая смена — инструкция',
-      desc: 'Для новичков — что делать в день смены',
+      id: 8, cat: 'onboarding', name: 'Первая задание — инструкция',
+      desc: 'Для новичков — что делать в день задания',
       cover: 'bg-gradient-to-br from-blue-500 to-indigo-600', icon: '📚',
-      title: 'Как пройдёт ваша первая смена',
+      title: 'Как пройдёт ваша первая задание',
       body: 'Подойдите за 15 минут до начала. Возьмите паспорт. Менеджер встретит у входа и покажет, что делать.',
       hasContact: true, hasCopay: false,
       uses: 56
     },
     {
       id: 9, cat: 'onboarding', name: 'Что взять с собой',
-      desc: 'Чек-лист перед сменой',
+      desc: 'Чек-лист перед заданием',
       cover: 'bg-gradient-to-br from-slate-600 to-slate-800', icon: '✅',
-      title: 'Чек-лист на смену',
+      title: 'Чек-лист на задание',
       body: 'Паспорт, СНИЛС, ИНН, рабочая обувь, удобная одежда. Зарядка для телефона — на всякий случай.',
       hasContact: false, hasCopay: false,
       uses: 41
@@ -3011,10 +3011,10 @@ function IconBtn({ icon, onClick, title }) {
 // ============ Notifications & Settings panels ============
 function NotificationsPanel({ onClose }) {
   const items = [
-    { id: 1, type: 'success', icon: <CheckCircle2 size={14} className="text-emerald-600" />, title: '5 новых записей через сторис', body: '«Срочные смены в Москве — х1.5» — за последний час', time: '12 мин назад', unread: true },
+    { id: 1, type: 'success', icon: <CheckCircle2 size={14} className="text-emerald-600" />, title: '5 новых записей через сторис', body: '«Срочные задания в Москве — х1.5» — за последний час', time: '12 мин назад', unread: true },
     { id: 2, type: 'info', icon: <ClipboardCheck size={14} className="text-amber-600" />, title: 'Новая сторис на верификации', body: '«Срочно нужны курьеры в Москве» от Анны Соколовой — проверьте, пожалуйста', time: '1ч назад', unread: true },
     { id: 3, type: 'warning', icon: <AlertTriangle size={14} className="text-amber-600" />, title: 'Битая ссылка снята автоматически', body: 'Сторис «Реферальная программа» переведена в архив — 2 ссылки 404', time: '3ч назад', unread: true },
-    { id: 4, type: 'info', icon: <UserPlus size={14} className="text-blue-600" />, title: 'Анна Соколова опубликовала сторис', body: '«Бонус за выходные смены» — охват ~3200', time: 'вчера', unread: false },
+    { id: 4, type: 'info', icon: <UserPlus size={14} className="text-blue-600" />, title: 'Анна Соколова опубликовала сторис', body: '«Бонус за выходные задания» — охват ~3200', time: 'вчера', unread: false },
     { id: 5, type: 'success', icon: <Sparkles size={14} className="text-blue-600" />, title: 'A/B-тест завершён — победил вариант B', body: 'CTR 18.7% против 14.2%. Применили автоматически.', time: 'вчера', unread: false }
   ];
   return (
@@ -3175,12 +3175,12 @@ function AddChoiceModal({ onClose, onPickNew, onPickTemplate, onPickDraft, lastD
   const [stage, setStage] = useState('choice'); // 'choice' | 'templates'
 
   const popularTemplates = [
-    { id: 1, cat: 'urgent', name: 'Срочные смены — повышенная ставка', desc: 'Горящие вакансии с доплатой. Кнопка записи.', cover: 'bg-gradient-to-br from-orange-500 to-red-600', icon: '🔥', title: 'Срочно нужны люди в Москве!', body: 'У ВкусВилла на складе в Хамовниках есть смены сегодня и завтра. Ставка 2500 ₽ + 500 ₽ от РР. Нажми «Записаться».', hasContact: true, hasCopay: true, uses: 47 },
-    { id: 2, cat: 'urgent', name: 'Завтрашние смены (за день)', desc: 'За сутки до даты — список открытых смен', cover: 'bg-gradient-to-br from-amber-500 to-orange-600', icon: '⏰', title: 'Смены на завтра', body: 'Завтра у партнёров 12 открытых смен. Ставки от 2200 ₽. Локации в описании.', hasContact: true, hasCopay: false, uses: 31 },
-    { id: 5, cat: 'promo', name: 'Реферальная программа', desc: 'Приведи друга — +2000 ₽', cover: 'bg-gradient-to-br from-emerald-500 to-teal-600', icon: '🎁', title: 'Приведи друга — получи 2000 ₽', body: 'Поделись приложением с друзьями. За каждого, кто выполнит первую смену, начислим 2000 ₽ на карту.', hasContact: false, hasCopay: false, uses: 24 },
-    { id: 6, cat: 'promo', name: 'Бонус за серию смен', desc: 'Геймификация для активных', cover: 'bg-gradient-to-br from-fuchsia-500 to-pink-600', icon: '🏆', title: '5 смен — бонус 1000 ₽', body: 'Сделайте 5 смен на этой неделе — получите 1000 ₽ бонусом сверху.', hasContact: false, hasCopay: true, uses: 19 },
-    { id: 8, cat: 'onboarding', name: 'Первая смена — инструкция', desc: 'Для новичков — что делать в день смены', cover: 'bg-gradient-to-br from-blue-500 to-indigo-600', icon: '📚', title: 'Как пройдёт ваша первая смена', body: 'Подойдите за 15 минут до начала. Возьмите паспорт. Менеджер встретит у входа и покажет, что делать.', hasContact: true, hasCopay: false, uses: 56 },
-    { id: 9, cat: 'onboarding', name: 'Что взять с собой', desc: 'Чек-лист перед сменой', cover: 'bg-gradient-to-br from-slate-600 to-slate-800', icon: '✅', title: 'Чек-лист на смену', body: 'Паспорт, СНИЛС, ИНН, рабочая обувь, удобная одежда. Зарядка для телефона — на всякий случай.', hasContact: false, hasCopay: false, uses: 41 }
+    { id: 1, cat: 'urgent', name: 'Срочные задания — повышенная ставка', desc: 'Горящие вакансии с доплатой. Кнопка записи.', cover: 'bg-gradient-to-br from-orange-500 to-red-600', icon: '🔥', title: 'Срочно нужны люди в Москве!', body: 'У ВкусВилла на складе в Хамовниках есть задания сегодня и завтра. Ставка 2500 ₽ + 500 ₽ от РР. Нажми «Записаться».', hasContact: true, hasCopay: true, uses: 47 },
+    { id: 2, cat: 'urgent', name: 'Завтрашние задания (за день)', desc: 'За сутки до даты — список открытых заданий', cover: 'bg-gradient-to-br from-amber-500 to-orange-600', icon: '⏰', title: 'Задания на завтра', body: 'Завтра у партнёров 12 открытых заданий. Ставки от 2200 ₽. Локации в описании.', hasContact: true, hasCopay: false, uses: 31 },
+    { id: 5, cat: 'promo', name: 'Реферальная программа', desc: 'Приведи друга — +2000 ₽', cover: 'bg-gradient-to-br from-emerald-500 to-teal-600', icon: '🎁', title: 'Приведи друга — получи 2000 ₽', body: 'Поделись приложением с друзьями. За каждого, кто выполнит первую задание, начислим 2000 ₽ на карту.', hasContact: false, hasCopay: false, uses: 24 },
+    { id: 6, cat: 'promo', name: 'Бонус за серию заданий', desc: 'Геймификация для активных', cover: 'bg-gradient-to-br from-fuchsia-500 to-pink-600', icon: '🏆', title: '5 заданий — бонус 1000 ₽', body: 'Сделайте 5 заданий на этой неделе — получите 1000 ₽ бонусом сверху.', hasContact: false, hasCopay: true, uses: 19 },
+    { id: 8, cat: 'onboarding', name: 'Первая задание — инструкция', desc: 'Для новичков — что делать в день задания', cover: 'bg-gradient-to-br from-blue-500 to-indigo-600', icon: '📚', title: 'Как пройдёт ваша первая задание', body: 'Подойдите за 15 минут до начала. Возьмите паспорт. Менеджер встретит у входа и покажет, что делать.', hasContact: true, hasCopay: false, uses: 56 },
+    { id: 9, cat: 'onboarding', name: 'Что взять с собой', desc: 'Чек-лист перед заданием', cover: 'bg-gradient-to-br from-slate-600 to-slate-800', icon: '✅', title: 'Чек-лист на задание', body: 'Паспорт, СНИЛС, ИНН, рабочая обувь, удобная одежда. Зарядка для телефона — на всякий случай.', hasContact: false, hasCopay: false, uses: 41 }
   ];
 
   return (
@@ -3823,9 +3823,9 @@ export default function StoriesAdmin() {
   // В проде здесь будет последний draft текущего пользователя из БД.
   const lastDraft = {
     id: 'draft-9001',
-    title: 'Бонус +500₽ за смены на выходные',
-    body: 'В субботу и воскресенье ставка +500₽ от РР для всех смен на складах ВкусВилла. Записаться можно прямо сейчас.',
-    description: 'В субботу и воскресенье ставка +500₽ от РР для всех смен на складах ВкусВилла. Записаться можно прямо сейчас.',
+    title: 'Бонус +500₽ за задания на выходные',
+    body: 'В субботу и воскресенье ставка +500₽ от РР для всех заданий на складах ВкусВилла. Записаться можно прямо сейчас.',
+    description: 'В субботу и воскресенье ставка +500₽ от РР для всех заданий на складах ВкусВилла. Записаться можно прямо сейчас.',
     cover: 'bg-gradient-to-br from-amber-400 to-orange-500',
     targetCities: ['Москва', 'Санкт-Петербург'],
     hasContact: true,
