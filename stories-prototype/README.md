@@ -40,7 +40,6 @@ npm run dev
 ├── docs/
 │   ├── analytics_panel_overview.md   ← описание панели аналитики по отделам
 │   ├── stories_editor_mockup.html    ← standalone HTML-макет с CRM-фреймом
-│   ├── screenshots/                  ← скриншоты текущей CRM
 │   └── examples/                     ← примеры xlsx-выгрузок
 ├── package.json
 ├── vite.config.js

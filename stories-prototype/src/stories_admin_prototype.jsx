@@ -51,13 +51,13 @@ const skipRateData = [
 ];
 
 const storyList = [
-  { id: 1, title: 'Срочные задания в Москве — х1.5', status: 'active', views: 64200, ctr: '14.2%', city: 'Москва', cover: 'bg-gradient-to-br from-orange-400 to-rose-500', publishedAt: '12.05.2026 09:00' },
-  { id: 2, title: 'Новые правила выплат', status: 'active', views: 98180, ctr: '12.4%', city: 'Все', cover: 'bg-gradient-to-br from-violet-500 to-indigo-600', publishedAt: '10.05.2026 11:30' },
-  { id: 3, title: 'Новые объекты в Краснодаре', status: 'scheduled', views: 0, ctr: '—', city: 'Краснодар', cover: 'bg-gradient-to-br from-emerald-400 to-teal-600', scheduledAt: '15.05.2026 09:00' },
-  { id: 4, title: 'Реферальная программа +2000₽', status: 'active', views: 52410, ctr: '18.7%', city: 'Все', cover: 'bg-gradient-to-br from-amber-400 to-orange-500', publishedAt: '08.05.2026 14:15' },
+  { id: 1, title: 'Срочные задания в Москве — х1.5', status: 'active', views: 64200, ctr: '14.2%', city: 'Москва', cover: 'bg-gradient-to-br from-orange-400 to-rose-500', publishedAt: '12.05.2026 09:00', expiresAt: '14.05.2026 22:00' },
+  { id: 2, title: 'Новые правила выплат', status: 'active', views: 98180, ctr: '12.4%', city: 'Все', cover: 'bg-gradient-to-br from-violet-500 to-indigo-600', publishedAt: '10.05.2026 11:30', expiresAt: null },
+  { id: 3, title: 'Новые объекты в Краснодаре', status: 'scheduled', views: 0, ctr: '—', city: 'Краснодар', cover: 'bg-gradient-to-br from-emerald-400 to-teal-600', scheduledAt: '15.05.2026 09:00', expiresAt: '22.05.2026 23:59' },
+  { id: 4, title: 'Реферальная программа +2000₽', status: 'active', views: 52410, ctr: '18.7%', city: 'Все', cover: 'bg-gradient-to-br from-amber-400 to-orange-500', publishedAt: '08.05.2026 14:15', expiresAt: '31.05.2026 23:59' },
   { id: 5, title: 'Инструкция по выходу на задание', status: 'archived', views: 168340, ctr: '8.1%', city: 'Все', cover: 'bg-gradient-to-br from-sky-400 to-blue-600', publishedAt: '01.04.2026 10:00', archivedAt: '08.05.2026 18:00' },
   { id: 6, title: 'Промо-кампания для новичков', status: 'draft', views: 0, ctr: '—', city: '—', cover: 'bg-gradient-to-br from-slate-300 to-slate-500', updatedAt: '11.05.2026 16:42' },
-  { id: 7, title: 'Бонусы за задания в выходные', status: 'scheduled', views: 0, ctr: '—', city: 'Москва', cover: 'bg-gradient-to-br from-pink-400 to-fuchsia-500', scheduledAt: '17.05.2026 18:00' },
+  { id: 7, title: 'Бонусы за задания в выходные', status: 'scheduled', views: 0, ctr: '—', city: 'Москва', cover: 'bg-gradient-to-br from-pink-400 to-fuchsia-500', scheduledAt: '17.05.2026 18:00', expiresAt: '19.05.2026 23:59' },
   { id: 8, title: 'Чек-лист для новичков', status: 'draft', views: 0, ctr: '—', city: '—', cover: 'bg-gradient-to-br from-cyan-400 to-blue-500', updatedAt: '12.05.2026 12:08' }
 ];
 
@@ -2629,15 +2629,22 @@ function ListView({ showToast, onEditStory }) {
           </div>
         ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[720px]">
+          <table className="w-full text-sm min-w-[820px]">
             <thead className="bg-slate-50">
-              <tr className="text-xs text-slate-500 uppercase tracking-wider">
-                <th className="text-left font-medium px-4 py-3">Сторис</th>
-                <th className="text-left font-medium px-4 py-3">Статус</th>
-                <th className="text-left font-medium px-4 py-3">Город</th>
-                <th className="text-left font-medium px-4 py-3">Дата</th>
-                <th className="text-right font-medium px-4 py-3">Просмотры</th>
-                <th className="text-right font-medium px-4 py-3">CTR</th>
+              <tr className="text-[10px] text-slate-500 uppercase tracking-wider">
+                <th className="text-left font-medium px-4 py-3 align-bottom">Сторис</th>
+                <th className="text-left font-medium px-4 py-3 align-bottom">Статус</th>
+                <th className="text-left font-medium px-4 py-3 align-bottom">Город</th>
+                <th className="text-left font-medium px-4 py-3 leading-tight">
+                  <div>Дата</div>
+                  <div>публикации</div>
+                </th>
+                <th className="text-left font-medium px-4 py-3 leading-tight">
+                  <div>Дата снятия</div>
+                  <div>с публикации</div>
+                </th>
+                <th className="text-right font-medium px-4 py-3 align-bottom">Просмотры</th>
+                <th className="text-right font-medium px-4 py-3 align-bottom">CTR</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -2665,21 +2672,73 @@ function ListView({ showToast, onEditStory }) {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-slate-600">{s.city}</td>
-                  <td className="px-4 py-3 text-xs text-slate-600">
-                    {s.status === 'scheduled' && s.scheduledAt && (
-                      <span className="inline-flex items-center gap-1 text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md font-medium">
-                        <Clock size={11} /> {s.scheduledAt}
-                      </span>
-                    )}
-                    {s.status === 'active' && s.publishedAt && (
-                      <span className="text-slate-500">Опубл. {s.publishedAt}</span>
-                    )}
-                    {s.status === 'archived' && s.archivedAt && (
-                      <span className="text-slate-400">В архиве с {s.archivedAt}</span>
-                    )}
+                  {/* Дата публикации */}
+                  <td className="px-4 py-3 text-xs">
+                    {s.status === 'active' && s.publishedAt && (() => {
+                      const [d, t] = s.publishedAt.split(' ');
+                      return (
+                        <div className="leading-tight">
+                          <div className="text-slate-700 font-medium tabular-nums">{d}</div>
+                          <div className="text-slate-400 tabular-nums">{t}</div>
+                        </div>
+                      );
+                    })()}
+                    {s.status === 'scheduled' && s.scheduledAt && (() => {
+                      const [d, t] = s.scheduledAt.split(' ');
+                      return (
+                        <div className="leading-tight">
+                          <div className="text-blue-700 font-semibold tabular-nums flex items-center gap-1">
+                            <Clock size={10} /> {d}
+                          </div>
+                          <div className="text-blue-500 tabular-nums">{t}</div>
+                        </div>
+                      );
+                    })()}
+                    {s.status === 'archived' && s.publishedAt && (() => {
+                      const [d, t] = s.publishedAt.split(' ');
+                      return (
+                        <div className="leading-tight opacity-70">
+                          <div className="text-slate-600 tabular-nums">{d}</div>
+                          <div className="text-slate-400 tabular-nums">{t}</div>
+                        </div>
+                      );
+                    })()}
                     {s.status === 'draft' && (
-                      <span className="text-amber-700">Изм. {s.updatedAt || '—'}</span>
+                      <span className="text-slate-300 text-[11px]">—</span>
                     )}
+                  </td>
+                  {/* Дата снятия с публикации */}
+                  <td className="px-4 py-3 text-xs">
+                    {(s.status === 'active' || s.status === 'scheduled') && s.expiresAt && (() => {
+                      const [d, t] = s.expiresAt.split(' ');
+                      return (
+                        <div className="leading-tight">
+                          <div className="text-slate-700 font-medium tabular-nums">{d}</div>
+                          <div className="text-slate-400 tabular-nums">{t}</div>
+                        </div>
+                      );
+                    })()}
+                    {(s.status === 'active' || s.status === 'scheduled') && !s.expiresAt && (
+                      <span className="text-slate-400 text-[11px]">Без авто-снятия</span>
+                    )}
+                    {s.status === 'archived' && s.archivedAt && (() => {
+                      const [d, t] = s.archivedAt.split(' ');
+                      return (
+                        <div className="leading-tight">
+                          <div className="text-slate-600 font-medium tabular-nums">{d}</div>
+                          <div className="text-slate-400 tabular-nums">{t}</div>
+                        </div>
+                      );
+                    })()}
+                    {s.status === 'draft' && s.updatedAt && (() => {
+                      const [d, t] = s.updatedAt.split(' ');
+                      return (
+                        <div className="leading-tight">
+                          <div className="text-amber-700 font-medium tabular-nums text-[10px] uppercase tracking-wider">черновик</div>
+                          <div className="text-amber-600 tabular-nums">изм. {d} {t}</div>
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">{s.views.toLocaleString('ru')}</td>
                   <td className="px-4 py-3 text-right">{s.ctr}</td>
