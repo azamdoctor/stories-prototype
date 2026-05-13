@@ -2320,8 +2320,9 @@ function ListView({ showToast, onEditStory }) {
   const [storyOrder, setStoryOrder] = useState([1, 2, 3, 4, 5, 6, 7]); // story IDs in display order
   // Управление порядком и ряд кружочков скрыты по умолчанию — раскрываются по клику
   const [showOrderControls, setShowOrderControls] = useState(false);
-  // Подтверждение архивации
+  // Подтверждение архивации и удаления
   const [archiveConfirm, setArchiveConfirm] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   const statusMeta = {
     active: { l: 'Активна', c: 'bg-emerald-100 text-emerald-700' },
@@ -2375,6 +2376,15 @@ function ListView({ showToast, onEditStory }) {
       x.id === s.id ? { ...x, status: 'active', archivedAt: undefined } : x
     ));
     showToast(`«${s.title}» восстановлена из архива`);
+  };
+  const handleDelete = (s) => {
+    setDeleteConfirm(s);
+  };
+  const confirmDelete = () => {
+    if (!deleteConfirm) return;
+    setStories(stories.filter(x => x.id !== deleteConfirm.id));
+    showToast(`«${deleteConfirm.title}» удалена безвозвратно`);
+    setDeleteConfirm(null);
   };
 
   const moveUp = (id) => {
@@ -2560,6 +2570,13 @@ function ListView({ showToast, onEditStory }) {
                   <IconBtn icon={<Edit3 size={13} />} onClick={() => handleEdit(s)} title="Редактировать" />
                   <IconBtn icon={<Copy size={13} />} onClick={() => handleDuplicate(s)} title="Дублировать" />
                   <IconBtn icon={<Archive size={13} />} onClick={() => handleArchive(s)} title="В архив" />
+                  <button
+                    onClick={() => handleDelete(s)}
+                    title="Удалить"
+                    className="p-1.5 rounded-md text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
+                  >
+                    <Trash2 size={13} />
+                  </button>
                 </div>
               </div>
             );
@@ -2681,6 +2698,13 @@ function ListView({ showToast, onEditStory }) {
                       ) : (
                         <IconBtn icon={<Archive size={14} />} onClick={() => handleArchive(s)} title="В архив" />
                       )}
+                      <button
+                        onClick={() => handleDelete(s)}
+                        title="Удалить безвозвратно"
+                        className="p-1.5 rounded-md text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -2719,6 +2743,46 @@ function ListView({ showToast, onEditStory }) {
                 className="px-4 py-2 text-sm font-bold text-white bg-amber-600 rounded-lg hover:bg-amber-700 flex items-center gap-2"
               >
                 <Archive size={14} /> Перенести в архив
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модалка подтверждения удаления */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4" onClick={() => setDeleteConfirm(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-slate-200 flex items-start gap-3">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Trash2 size={20} className="text-red-600" />
+              </div>
+              <div>
+                <div className="font-bold text-base text-slate-900">Вы уверены, что хотите удалить историю?</div>
+                <div className="text-xs text-slate-500 mt-0.5">«{deleteConfirm.title}»</div>
+              </div>
+            </div>
+            <div className="px-6 py-4 space-y-2.5">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+                <AlertTriangle size={14} className="text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="text-xs text-red-800 leading-snug">
+                  <b>Её статистика не сохранится.</b> Все просмотры, клики, реакции и записи будут удалены без возможности восстановления.
+                </div>
+              </div>
+              <div className="text-xs text-slate-500 leading-snug">
+                Если вы хотите просто снять сторис с показа, но сохранить её историю и метрики — используйте <b>«В архив»</b>.
+              </div>
+            </div>
+            <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800"
+              >Отмена</button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 text-sm font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 flex items-center gap-2"
+              >
+                <Trash2 size={14} /> Удалить безвозвратно
               </button>
             </div>
           </div>
